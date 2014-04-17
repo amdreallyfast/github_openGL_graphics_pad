@@ -115,7 +115,6 @@ void me_GL_window::initializeGL()
 
 void me_GL_window::paintGL()
 {
-   static float current_rotation_degrees = 1.0f;
 
    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
    
@@ -128,37 +127,25 @@ void me_GL_window::paintGL()
    // Note: http://glm.g-truc.net/0.9.4/api/a00151.html
    // Find glm::perspective on that web page, and you will see that the first value defaults to degrees,
    // but can be interpreted in radians if GLM_FORCE_RADIANS is defined.
-//   mat4 projection_matrix = perspective(60.0f, ((float)width()) / height(), 0.1f, 10.0f);
-   float fov = 0.33f * 3.14f;
-   //cout << "field of view: '" << fov << "'" << endl;
+   float fov_radians = (1.0f / 3.0f) * 3.14159f;
    float aspect_ratio = ((float)width()) / ((float)height());
    float near_plane_dist = 0.1f;
    float far_plane_dist = 10.0f;
-   mat4 projection_matrix = perspective(fov, aspect_ratio, near_plane_dist, far_plane_dist);
-   mat4 translation_matrix = translate(projection_matrix, vec3(0.0f, 0.0f, -3.0f));
-   mat4 full_transform_matrix = rotate(translation_matrix, current_rotation_degrees += 1.0f, vec3(1.0f, 0.0f, 0.0f));
+   mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
+   //float fov_degrees = 60.0f;
+   //mat4 projection_matrix = perspective(fov_degrees, aspect_ratio, near_plane_dist, far_plane_dist);
 
-   system("cls");
-   for (int matrix_row = 0; matrix_row < 4; matrix_row += 1)
-   {
-      for (int matrix_column = 0; matrix_column < 4; matrix_column += 1)
-      {
-         float val = full_transform_matrix[matrix_row][matrix_column];
-         if (val >= 0)
-         {
-            printf("[+%.5f] ", val);
-            //cout << setw(5) << "[+" << std::right << std::fixed << std::setprecision(4) << val << "]";
-         }
-         else
-         {
-            printf("[%.5f] ", val);
-            //cout << setw(5) << "[" << std::right << std::fixed << std::setprecision(4) << val << "]";
-         }
-      }
-      cout << endl;
-   }
+   vec3 translation_vector = vec3(0.0f, 0.0f, -3.0f);
+   mat4 translation_matrix = translate(projection_matrix, translation_vector);
 
+   static float current_rotation_radians = 0.0f;
+   static float rotation_increment_radians = (1.0f / 64.0f) * 3.14159;
+   vec3 rotation_vector = vec3(1.0f, 0.0f, 0.0f);
+   mat4 full_transform_matrix = rotate(translation_matrix, current_rotation_radians += rotation_increment_radians, rotation_vector);
 
+   //static float current_rotation_degrees = 0.0f;
+   //static float rotation_increment_degrees = 1.0f;
+   //mat4 full_transform_matrix = rotate(translation_matrix, current_rotation_degrees += rotation_increment_degrees, rotation_vector);
 
    shader_handler& shader_thingy = shader_handler::get_instance();
    GLuint shader_program_ID = shader_thingy.get_shader_program_ID();
