@@ -121,40 +121,66 @@ void me_GL_window::paintGL()
    // set the world of viewport dimensions to be the size of the window
    glViewport(0, 0, width(), height());   
 
-   // making the matrices
-   // Note: Perform a simple transformation 3 units in the negative Z direction.
-   // Make a 60 degree perspective with an aspect ratio the same as the QTwidget window.
-   // Note: http://glm.g-truc.net/0.9.4/api/a00151.html
-   // Find glm::perspective on that web page, and you will see that the first value defaults to degrees,
-   // but can be interpreted in radians if GLM_FORCE_RADIANS is defined.
-   float fov_radians = (1.0f / 3.0f) * 3.14159f;
-   float aspect_ratio = ((float)width()) / ((float)height());
-   float near_plane_dist = 0.1f;
-   float far_plane_dist = 10.0f;
-   mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
-   //float fov_degrees = 60.0f;
-   //mat4 projection_matrix = perspective(fov_degrees, aspect_ratio, near_plane_dist, far_plane_dist);
-
-   vec3 translation_vector = vec3(0.0f, 0.0f, -3.0f);
-   mat4 translation_matrix = translate(projection_matrix, translation_vector);
-
-   static float current_rotation_radians = 0.0f;
-   static float rotation_increment_radians = (1.0f / 64.0f) * 3.14159;
-   vec3 rotation_vector = vec3(1.0f, 0.0f, 0.0f);
-   mat4 full_transform_matrix = rotate(translation_matrix, current_rotation_radians += rotation_increment_radians, rotation_vector);
-
-   //static float current_rotation_degrees = 0.0f;
-   //static float rotation_increment_degrees = 1.0f;
-   //mat4 full_transform_matrix = rotate(translation_matrix, current_rotation_degrees += rotation_increment_degrees, rotation_vector);
-
    shader_handler& shader_thingy = shader_handler::get_instance();
    GLuint shader_program_ID = shader_thingy.get_shader_program_ID();
 
+   // declare the matrices up front because you will use them multiple times in this function.
+   mat4 projection_matrix;
+   mat4 translation_matrix;
+   mat4 rotation_matrix;
+   mat4 full_transform_matrix;
+
    GLint full_transform_matrix_uniform_location = 0;
    full_transform_matrix_uniform_location = glGetUniformLocation(shader_program_ID, "full_transform_matrix");
+
+
+   // making the matrices
+   // Note: http://glm.g-truc.net/0.9.4/api/a00151.html
+   // Find glm::perspective on that web page, and you will see that the first value defaults to degrees,
+   // but can be interpreted in radians if GLM_FORCE_RADIANS is defined.
+   float fov_radians = (1.0f / 2.0f) * 3.14159f;
+   float aspect_ratio = ((float)width()) / ((float)height());
+   float near_plane_dist = 0.1f;
+   float far_plane_dist = 10.0f;
+   projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
+
+   vec3 translation_vector = vec3(1.0f, 0.0f, -3.0f);
+   translation_matrix = translate(mat4(), translation_vector);
+
+   float current_rotation_radians = (1.0f / 3.0f) * 3.14159f;
+   vec3 rotation_vector = vec3(1.0f, 0.0f, 0.0f);
+   rotation_matrix = rotate(mat4(), current_rotation_radians, rotation_vector);
+
+   // make the transform matrix for this cube
+   // Note: The order of multiplication is very important.
+   // When rotating, GL will automatically rotate around the world's version of the vector specified.
+   // Therefore, we rotate first, then translate, then smash it into the perspective range of -1 to +1
+   // on x, y, and x.
+   // Note: Oddly enough, we rotate first, then translate, then project by multiplying the projection
+   // matrix by the translation matrix, then multiplying the result by the rotation matrix.
+   full_transform_matrix = projection_matrix * translation_matrix;
+   full_transform_matrix *= rotation_matrix;
+
+   // send the transform to the vertex shader and draw this cube
    glUniformMatrix4fv(full_transform_matrix_uniform_location, 1, GL_FALSE, &(full_transform_matrix[0][0]));
+   glDrawElements(GL_TRIANGLES, num_indices_to_draw, GL_UNSIGNED_SHORT, 0);
 
 
+   // do it all again and draw the same vertices transformed to different locations
+   // Note: Don't recreate the perspective matrix because that has nothing to do with vertex 
+   // translation and rotation.
+   translation_vector = vec3(0.0f, -1.0f, -3.75f);
+   translation_matrix = translate(mat4(), translation_vector);
+
+   current_rotation_radians = (1.0f / 3.0f) * 3.14159f;
+   rotation_vector = vec3(0.0f, 1.0f, 1.0f);
+   rotation_matrix = rotate(mat4(), current_rotation_radians, rotation_vector);
+
+   full_transform_matrix = projection_matrix * translation_matrix;
+   full_transform_matrix *= rotation_matrix;
+
+   // send the transform to the vertex shader and draw this cube
+   glUniformMatrix4fv(full_transform_matrix_uniform_location, 1, GL_FALSE, &(full_transform_matrix[0][0]));
    glDrawElements(GL_TRIANGLES, num_indices_to_draw, GL_UNSIGNED_SHORT, 0);
 }
 
