@@ -14,6 +14,10 @@ protected:
 
 	// override the widget's "paint GL" method, which is the method that QT calls whenever it needs to do some painting commands to the window through OpenGL
 	void paintGL();
+
+   // define this within this class so that it can have access to the width() and height() functions for
+   // when it needs to calculate aspect ratio
+   void send_data_to_open_GL();
 public:
 };
 

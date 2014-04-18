@@ -21,7 +21,7 @@ using glm::vec3;
 my_shape_data my_shape_generator::make_double_triangle()
 {
    // declare some vertices and make a shape out of it
-   my_shape_data ret_val;
+   my_shape_data double_tri;
 
    const float RED_TRIANGLE_Z = +0.5f;
    const float BLUE_TRIANGLE_Z = -0.5f;
@@ -44,15 +44,25 @@ my_shape_data my_shape_generator::make_double_triangle()
       vec4(0.0f, 1.0f, 1.0f, 1.0f),          // blue + green
    };
 
+   // record some size data
+   // Note: The type of the vertex array is my_vertex, which means that each index refers to
+   // two sets of vec4 objects as per the definition of my_vertex.
+   double_tri.size_bytes_per_vertex = sizeof(verts[0]);
+   double_tri.size_bytes_per_position_vertex = sizeof(verts[0].position);
+   double_tri.size_bytes_per_color_vertex = sizeof(verts[0].color);
+   double_tri.num_position_entries_per_vertex = sizeof(verts[0].position) / sizeof(verts[0].position[0]);
+   double_tri.num_color_entries_per_vertex = sizeof(verts[0].color) / sizeof(verts[0].color[0]);
+
+
    // count the number of vertices (not my custom vertex, which includes color vectors, but total vertices)
    // Note: Instead of manually typing in the type value for the denominator, get the size of the first element in the array.  This is type safe.
-   ret_val.num_vertices = sizeof(verts) / sizeof(*verts);
+   double_tri.num_vertices = sizeof(verts) / sizeof(*verts);
    
    // allocate memory on the heap for the vertices
-   ret_val.vertices = new my_vertex[ret_val.num_vertices];
+   double_tri.vertices = new my_vertex[double_tri.num_vertices];
 
    // copy the vertex data onto the heap-allocated memory
-   memcpy(ret_val.vertices, verts, sizeof(verts));
+   memcpy(double_tri.vertices, verts, sizeof(verts));
 
    
    // vertex index data
@@ -60,22 +70,22 @@ my_shape_data my_shape_generator::make_double_triangle()
    //GLushort indices[] = { 0, 1, 2 };
 
    // count the number of indices
-   ret_val.num_indices = sizeof(indices) / sizeof(*indices);
+   double_tri.num_indices = sizeof(indices) / sizeof(*indices);
 
    // allocate memory on the heap for the indices
-   ret_val.indices = new GLushort[ret_val.num_indices];
+   double_tri.indices = new GLushort[double_tri.num_indices];
 
    // copy the vertex index data onto the heap-allocated memory
-   memcpy(ret_val.indices, indices, sizeof(indices));
+   memcpy(double_tri.indices, indices, sizeof(indices));
 
    
    // finally, recturn a copy of the structure, which actually isn't that big (two integers and two pointers)
-   return ret_val;
+   return double_tri;
 }
 
 my_shape_data my_shape_generator::make_cube()
 {
-   my_shape_data ret_val;
+   my_shape_data cube;
 
    my_vertex verts[] =
    {
@@ -140,10 +150,21 @@ my_shape_data my_shape_generator::make_cube()
       vec4(+0.9f, +1.0f, +0.2f, 1.0f),    // color
    };
 
+   // record some size data
+   // Note: The type of the vertex array is my_vertex, which means that each index refers to
+   // two sets of vec4 objects as per the definition of my_vertex.
+   cube.size_bytes_per_vertex = sizeof(verts[0]);
+   cube.size_bytes_per_position_vertex = sizeof(verts[0].position);
+   cube.size_bytes_per_color_vertex = sizeof(verts[0].color);
+   cube.num_position_entries_per_vertex = sizeof(verts[0].position) / sizeof(verts[0].position[0]);
+   cube.num_color_entries_per_vertex = sizeof(verts[0].color) / sizeof(verts[0].color[0]);
+
+
+
    GLuint array_size_bytes = sizeof(verts);
-   ret_val.num_vertices = array_size_bytes / sizeof(*verts);
-   ret_val.vertices = new my_vertex[ret_val.num_vertices];
-   memcpy(ret_val.vertices, verts, array_size_bytes);
+   cube.num_vertices = array_size_bytes / sizeof(*verts);
+   cube.vertices = new my_vertex[cube.num_vertices];
+   memcpy(cube.vertices, verts, array_size_bytes);
 
 
    // copied from video
@@ -163,10 +184,10 @@ my_shape_data my_shape_generator::make_cube()
    };
 
    array_size_bytes = sizeof(indices);
-   ret_val.num_indices = array_size_bytes / sizeof(*indices);
-   ret_val.indices = new GLushort[ret_val.num_indices];
-   memcpy(ret_val.indices, indices, array_size_bytes);
+   cube.num_indices = array_size_bytes / sizeof(*indices);
+   cube.indices = new GLushort[cube.num_indices];
+   memcpy(cube.indices, indices, array_size_bytes);
 
 
-   return ret_val;
+   return cube;
 }

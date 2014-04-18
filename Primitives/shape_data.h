@@ -5,12 +5,18 @@
 
 struct my_shape_data
 {
-   my_shape_data() :
-      vertices(0),
-      num_vertices(0),
-      indices(0),
-      num_indices(0)
+   my_shape_data()
    {
+      vertices = 0;
+      num_vertices = 0;
+      num_entries_per_vertex = 0;
+      num_position_entries_per_vertex = 0;
+      num_color_entries_per_vertex = 0;
+      size_bytes_per_vertex = 0;
+      size_bytes_per_position_vertex = 0;
+      size_bytes_per_color_vertex = 0;
+      indices = 0;
+      num_indices = 0;
    }
 
    void cleanup()
@@ -35,6 +41,12 @@ struct my_shape_data
 
    my_vertex* vertices;
    GLuint num_vertices;
+   GLuint num_entries_per_vertex;
+   GLuint num_position_entries_per_vertex;
+   GLuint num_color_entries_per_vertex;
+   GLsizei size_bytes_per_vertex;
+   GLsizei size_bytes_per_position_vertex;
+   GLsizei size_bytes_per_color_vertex;
    GLushort *indices;
    GLuint num_indices;
 };
