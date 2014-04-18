@@ -32,65 +32,70 @@ using std::left;
 #include "utilities\shader_handler.h"
 
 
-const uint TRIANGLE_NUM_VERTICES = 3;
-const uint TRIANGLE_NUM_POSITION_ENTRIES_PER_VERTEX = 4;
-const uint TRIANGLE_NUM_COLOR_ENTRIES_PER_VERTEX = 4;
-const uint TRIANGLE_NUM_ENTRIES_PER_VERTEX = TRIANGLE_NUM_POSITION_ENTRIES_PER_VERTEX + TRIANGLE_NUM_COLOR_ENTRIES_PER_VERTEX;
-const uint TRIANGLE_BYTE_SIZE = TRIANGLE_NUM_VERTICES * (TRIANGLE_NUM_ENTRIES_PER_VERTEX * sizeof(float));
-const float TRIANGLE_WIDTH_X = 0.02f;
-
-GLuint num_indices_to_draw;
-
 void send_data_to_open_GL()
 {
-   // declare some vertices and give them to open GL, and have openGL keep track of them
-   //my_shape_data triangle = my_shape_generator::make_double_triangle();
-   my_shape_data shape = my_shape_generator::make_cube();
+   // make a simple triangle and draw multiple instances of it
+   // Note: For this example, all the data will be hard-coded into this function.
+   GLfloat triangle_verts[] =
+   {
+      -1.0f, +0.0f, +0.0f, 1.0f,
+      -1.0f, +1.0f, +0.0f, 1.0f,
+      -0.9f, +0.0f, +0.0f, 1.0f,
+   };
 
-   cout << "number vertices = '" << shape.num_vertices << "'" << endl;
-
-   // make one buffer object to store the vertices in, then put the numbers into it so that they will be stored on the GPU
-   //   Note: The text 'GLfloat' cannot describe the third argument in glVertexAttribPointer(...).  
    GLuint vertex_buffer_ID;
    glGenBuffers(1, &vertex_buffer_ID);
    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_ID);
-   glBufferData(GL_ARRAY_BUFFER, shape.vertex_buffer_size(), shape.vertices, GL_STATIC_DRAW);
+   glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_verts), triangle_verts, GL_STATIC_DRAW);
    glEnableVertexAttribArray(0);
+   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+   
+   // unbind the array buffer because the vertex attribute object #0 already recorded 
+   // where the information was in the vertex buffer object
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-   // arguments are as follows:
-   // - index of an enabled vertex attribute array 
-   // - the number of items for this vertex attribute
-   // - the type of each item for this vertex attribute (must all be identical, and the type is not the same as the type used to declare the item (unfortunately))
-   // - boolean to specify whether GL should normalize the items (??what does this mean??); keep "false" until further notice
-   // - the number of bytes until the next instance of this vertex attribute appears in the GL_ARRAY_BUFFER object
-   // - the offset (in bytes) from the beginning of GL_ARRAY_BUFFER until the first item in this vertex attribute appears
-   glVertexAttribPointer(
-      0,
-      TRIANGLE_NUM_POSITION_ENTRIES_PER_VERTEX,
-      GL_FLOAT,
-      GL_FALSE,
-      (sizeof(GLfloat)* TRIANGLE_NUM_ENTRIES_PER_VERTEX),
-      0);
+   // now make a buffer for offsets
+   // Note: We will send this data to the vertex shader one float at time via vertex 
+   // attribute object #1.  This data will be close packed, and no offset is required 
+   // from the beginning of the array buffer (this is important to know for the last 
+   // two arguments of glVertexAttribPointer(...)).
+   // Note: No transforms are being done in this version of the program, and we know
+   // that the left-most vertex x value in the triangle_verts array is -1.0, so the 
+   // most the offset should add is 1.99999 or so to prevent it from surpassing 
+   // x = +1.0f, which is outside clipspace for the window.
+   GLfloat x_offsets[] = { 0.0f, 0.5f, 1.0f, 1.2, 1.6f };
+   GLuint offsets_buffer_ID;
+   glGenBuffers(1, &offsets_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, offsets_buffer_ID);
+   glBufferData(GL_ARRAY_BUFFER, sizeof(x_offsets), x_offsets, GL_STATIC_DRAW);
    glEnableVertexAttribArray(1);
-   glVertexAttribPointer(
-      1, 
-      TRIANGLE_NUM_COLOR_ENTRIES_PER_VERTEX, 
-      GL_FLOAT, 
-      GL_FALSE, 
-      (sizeof(GLfloat)* TRIANGLE_NUM_ENTRIES_PER_VERTEX), 
-      (char*)(sizeof(GLfloat) * TRIANGLE_NUM_POSITION_ENTRIES_PER_VERTEX)
-      );
+   glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
+   // only send one value from this buffer per element instance (see "draw" call in
+   // paintGL() function)
+   // Note: This function instructs openGL to send 1 (one) value from vertex attribute
+   // object #1 per instance draw.  The default is to send the "number of items to send"
+   // (see second argument to glVertexAttribPointer(...)) from the bound GL_ARRAY_BUFFER
+   // to the vertex shader on every call to the vertex shader.  We often want this 
+   // because we send vertices one by one to the vertex shader to be processes 
+   // individually, but in this case, we want one offset every THREE vertices.  The
+   // second argument to glVertexAttribPointer(...) can't be 1/3, so the only way to
+   // get away with this is to used glDrawElementsInstanced(...) (see paintGL() call) 
+   // and specify the number of instances to draw, and use this call in conjunction with
+   // glVertexAttribDivisor(...) and specify how many items (second argument) to send 
+   // from the vertex attribute object (this is specified in the first argument) per 
+   // instanced draw.
+   //
+   // I hope that makes sense.
+   glVertexAttribDivisor(1, 1);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+   GLushort indices[] = { 0, 1, 2 };
    GLuint index_buffer_ID;
    glGenBuffers(1, &index_buffer_ID);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_ID);
-   glBufferData(GL_ELEMENT_ARRAY_BUFFER, shape.index_buffer_size(), shape.indices, GL_STATIC_DRAW);
-
-   num_indices_to_draw = shape.num_indices;
-
-   // take care of any allocated memory
-   shape.cleanup();
-
+   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+   // ??unbind buffer??
 }
 
 
@@ -121,66 +126,7 @@ void me_GL_window::paintGL()
    // set the world of viewport dimensions to be the size of the window
    glViewport(0, 0, width(), height());   
 
-   shader_handler& shader_thingy = shader_handler::get_instance();
-   GLuint shader_program_ID = shader_thingy.get_shader_program_ID();
 
-   // declare the matrices up front because you will use them multiple times in this function.
-   mat4 projection_matrix;
-   mat4 translation_matrix;
-   mat4 rotation_matrix;
-   mat4 full_transform_matrix;
-
-   GLint full_transform_matrix_uniform_location = 0;
-   full_transform_matrix_uniform_location = glGetUniformLocation(shader_program_ID, "full_transform_matrix");
-
-
-   // making the matrices
-   // Note: http://glm.g-truc.net/0.9.4/api/a00151.html
-   // Find glm::perspective on that web page, and you will see that the first value defaults to degrees,
-   // but can be interpreted in radians if GLM_FORCE_RADIANS is defined.
-   float fov_radians = (1.0f / 2.0f) * 3.14159f;
-   float aspect_ratio = ((float)width()) / ((float)height());
-   float near_plane_dist = 0.1f;
-   float far_plane_dist = 10.0f;
-   projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
-
-   vec3 translation_vector = vec3(1.0f, 0.0f, -3.0f);
-   translation_matrix = translate(mat4(), translation_vector);
-
-   float current_rotation_radians = (1.0f / 3.0f) * 3.14159f;
-   vec3 rotation_vector = vec3(1.0f, 0.0f, 0.0f);
-   rotation_matrix = rotate(mat4(), current_rotation_radians, rotation_vector);
-
-   // make the transform matrix for this cube
-   // Note: The order of multiplication is very important.
-   // When rotating, GL will automatically rotate around the world's version of the vector specified.
-   // Therefore, we rotate first, then translate, then smash it into the perspective range of -1 to +1
-   // on x, y, and x.
-   // Note: Oddly enough, we rotate first, then translate, then project by multiplying the projection
-   // matrix by the translation matrix, then multiplying the result by the rotation matrix.
-   full_transform_matrix = projection_matrix * translation_matrix;
-   full_transform_matrix *= rotation_matrix;
-
-   // send the transform to the vertex shader and draw this cube
-   glUniformMatrix4fv(full_transform_matrix_uniform_location, 1, GL_FALSE, &(full_transform_matrix[0][0]));
-   glDrawElements(GL_TRIANGLES, num_indices_to_draw, GL_UNSIGNED_SHORT, 0);
-
-
-   // do it all again and draw the same vertices transformed to different locations
-   // Note: Don't recreate the perspective matrix because that has nothing to do with vertex 
-   // translation and rotation.
-   translation_vector = vec3(0.0f, -1.0f, -3.75f);
-   translation_matrix = translate(mat4(), translation_vector);
-
-   current_rotation_radians = (1.0f / 3.0f) * 3.14159f;
-   rotation_vector = vec3(0.0f, 1.0f, 1.0f);
-   rotation_matrix = rotate(mat4(), current_rotation_radians, rotation_vector);
-
-   full_transform_matrix = projection_matrix * translation_matrix;
-   full_transform_matrix *= rotation_matrix;
-
-   // send the transform to the vertex shader and draw this cube
-   glUniformMatrix4fv(full_transform_matrix_uniform_location, 1, GL_FALSE, &(full_transform_matrix[0][0]));
-   glDrawElements(GL_TRIANGLES, num_indices_to_draw, GL_UNSIGNED_SHORT, 0);
+   glDrawElementsInstanced(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0, 5);
 }
 
