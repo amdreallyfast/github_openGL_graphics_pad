@@ -30,7 +30,12 @@ using std::left;
 #include "Primitives\shape_generator.h"
 #include "utilities\shader_handler.h"
 
+// for our camera
+#include "camera.h"
+
+
 GLsizei num_indices_to_draw = 0;
+camera Camera;
 
 void me_GL_window::send_data_to_open_GL()
 {
@@ -81,8 +86,8 @@ void me_GL_window::send_data_to_open_GL()
    mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
    mat4 full_transforms[] =
    {
-      projection_matrix * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
-      projection_matrix * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
+      projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
+      projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
    };
 
    // Note: mat4 objects are specified in the vertex attribute object by row, so 
