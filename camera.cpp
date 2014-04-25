@@ -1,5 +1,9 @@
 #include "camera.h"
 
+// if you want to work in radians, you have to #define this in every single source file BEFORE they include
+// the neccessary glm files because the source files are all independent of each other; the #define in the
+// me_GL_window.cpp file does not carry over to this source file (you could include it in a common header 
+// or something
 #define GLM_FORCE_RADIANS
 #include <glm/glm/glm.hpp>
 #include <glm/glm/gtx/transform.hpp>
@@ -43,7 +47,7 @@ void my_camera::mouse_update(const glm::vec2& new_mouse_position)
    // Note: We are working in radians, so consider that when calculating your rotation angle.
    float rotate_angle_x_radians = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
    float rotation_angle_x_degrees = mouse_delta.x / 5;
-   m_view_direction = glm::mat3(glm::rotate(rotation_angle_x_degrees, m_world_up_vector)) * m_view_direction;
+   m_view_direction = glm::mat3(glm::rotate(rotate_angle_x_radians, m_world_up_vector)) * m_view_direction;
 
    m_prev_mouse_position = new_mouse_position;
 }
