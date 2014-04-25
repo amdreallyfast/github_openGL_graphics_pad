@@ -112,7 +112,7 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribDivisor(5, 1);
 
    // clean up
-   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   //glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 
@@ -150,7 +150,8 @@ void me_GL_window::paintGL()
       projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
       projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
    };
-   glBindBuffer(GL_ARRAY_BUFFER, transformation_matrix_buffer_ID);
+
+   //glBindBuffer(GL_ARRAY_BUFFER, transformation_matrix_buffer_ID);
    glBufferData(GL_ARRAY_BUFFER, sizeof(full_transforms), full_transforms, GL_DYNAMIC_DRAW);
 
    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -159,6 +160,8 @@ void me_GL_window::paintGL()
    glViewport(0, 0, width(), height());   
 
    glDrawElementsInstanced(GL_TRIANGLES, num_indices_to_draw, GL_UNSIGNED_SHORT, 0, 2);
+
+   //glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void me_GL_window::mouseMoveEvent(QMouseEvent * e)

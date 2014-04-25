@@ -1,5 +1,6 @@
 #include "camera.h"
 
+#define GLM_FORCE_RADIANS
 #include <glm/glm/glm.hpp>
 #include <glm/glm/gtx/transform.hpp>
 
@@ -10,7 +11,7 @@ using std::endl;
 my_camera::my_camera() :
    m_position(0.0f, 0.0f, 0.0f),
    m_world_up_vector(0.0f, 1.0f, 0.0f),
-   m_view_direction(0.0f, 0.0f, +1.0f),
+   m_view_direction(0.0f, 0.0f, -1.0f),
    m_prev_mouse_position(0.0f, 0.0f)
 {
    // default position of the camera will be world origin
@@ -40,8 +41,9 @@ void my_camera::mouse_update(const glm::vec2& new_mouse_position)
    // function's return value (a mat4) to be a mat3, which will cut off the 4th row and column, which we
    // are not concerned with because the view direction is a unit vector anyway (??is this a valid argument??)
    // Note: We are working in radians, so consider that when calculating your rotation angle.
-   float rotate_angle_x_radians = mouse_delta.x * (2.0f * 3.14159) / 360.0f;
-   m_view_direction = glm::mat3(glm::rotate(rotate_angle_x_radians, m_world_up_vector)) * m_view_direction;
+   float rotate_angle_x_radians = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
+   float rotation_angle_x_degrees = mouse_delta.x / 5;
+   m_view_direction = glm::mat3(glm::rotate(rotation_angle_x_degrees, m_world_up_vector)) * m_view_direction;
 
    m_prev_mouse_position = new_mouse_position;
 }
