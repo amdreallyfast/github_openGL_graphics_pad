@@ -80,20 +80,8 @@ void me_GL_window::send_data_to_open_GL()
    // take care of any allocated memory
    shape.cleanup();
 
-   //// now set up the transformation matrix buffer
-   //// Note: The calls to width() and height() are only useful on startup because they are not being
-   //// calculated on every call to paintGL(), so the aspect ratio will get screwed up when you resize.
-   //float fov_radians = (1.0f / 2.0f) * 3.14159f;
-   //float aspect_ratio = ((float)this->width()) / ((float)this->height());
-   //float near_plane_dist = 0.1f;
-   //float far_plane_dist = 10.0f;
-   //mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
-   //mat4 full_transforms[] =
-   //{
-   //   projection_matrix * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
-   //   projection_matrix * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
-   //};
-
+   // we are going to be sending two transformation 4x4 matrices to the vertex shader, but we don't
+   // want to send the data until the mouse starts moving
 
    // Note: mat4 objects are specified in the vertex attribute object by row, so 
    // they are sent in 4 sets of 4 floats.  Unfortunately, they cannot be sent 
@@ -105,7 +93,6 @@ void me_GL_window::send_data_to_open_GL()
    glGenBuffers(1, &transformation_matrix_buffer_ID);
    glBindBuffer(GL_ARRAY_BUFFER, transformation_matrix_buffer_ID);
    glBufferData(GL_ARRAY_BUFFER, sizeof(mat4) * 2, 0, GL_DYNAMIC_DRAW);
-//   glBufferData(GL_ARRAY_BUFFER, sizeof(full_transforms), full_transforms, GL_STATIC_DRAW);
    glEnableVertexAttribArray(2);
    glEnableVertexAttribArray(3);
    glEnableVertexAttribArray(4);
@@ -162,26 +149,9 @@ void me_GL_window::paintGL()
    {
       projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
       projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
-      //projection_matrix * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
-      //projection_matrix * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
    };
    glBindBuffer(GL_ARRAY_BUFFER, transformation_matrix_buffer_ID);
    glBufferData(GL_ARRAY_BUFFER, sizeof(full_transforms), full_transforms, GL_DYNAMIC_DRAW);
-
-   //printf("full transform 1                  full transform 2\n");
-   //printf("[(%.2f), (%.2f), (%.2f), (%.2f)] [(%.2f), (%.2f), (%.2f), (%.2f)]\n",
-   //   full_transforms[0][0][0], full_transforms[0][0][1], full_transforms[0][0][2], full_transforms[0][0][3],
-   //   full_transforms[1][0][0], full_transforms[1][0][1], full_transforms[1][0][2], full_transforms[1][0][3]);
-   //printf("[(%.2f), (%.2f), (%.2f), (%.2f)] [(%.2f), (%.2f), (%.2f), (%.2f)]\n",
-   //   full_transforms[0][1][0], full_transforms[0][1][1], full_transforms[0][1][2], full_transforms[0][1][3],
-   //   full_transforms[1][1][0], full_transforms[1][1][1], full_transforms[1][1][2], full_transforms[1][1][3]);
-   //printf("[(%.2f), (%.2f), (%.2f), (%.2f)] [(%.2f), (%.2f), (%.2f), (%.2f)]\n",
-   //   full_transforms[0][2][0], full_transforms[0][2][1], full_transforms[0][2][2], full_transforms[0][2][3],
-   //   full_transforms[1][2][0], full_transforms[1][2][1], full_transforms[1][2][2], full_transforms[1][2][3]);
-   //printf("[(%.2f), (%.2f), (%.2f), (%.2f)] [(%.2f), (%.2f), (%.2f), (%.2f)]\n",
-   //   full_transforms[0][3][0], full_transforms[0][3][1], full_transforms[0][3][2], full_transforms[0][3][3],
-   //   full_transforms[1][3][0], full_transforms[1][3][1], full_transforms[1][3][2], full_transforms[1][3][3]);
-   //printf("--------------------------------------------------------------------------------------\n");
 
    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
    
@@ -193,7 +163,6 @@ void me_GL_window::paintGL()
 
 void me_GL_window::mouseMoveEvent(QMouseEvent * e)
 {
-   //cout << "x: '" << e->x() << "'; y: '" << e->y() << "'" << endl;
    Camera.mouse_update(glm::vec2(e->x(), e->y()));
 
    this->repaint();
