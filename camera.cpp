@@ -3,21 +3,46 @@
 #include <glm/glm/glm.hpp>
 #include <glm/glm/gtx/transform.hpp>
 
-camera::camera() :
+#include <iostream>
+using std::cout;
+using std::endl;
+
+my_camera::my_camera() :
    m_position(0.0f, 0.0f, 0.0f),
    m_world_up_vector(0.0f, 1.0f, 0.0f),
-   m_view_direction(0.0f, 0.0f, -1.0f)
+   m_view_direction(0.0f, 0.0f, +1.0f),
+   m_prev_mouse_position(0.0f, 0.0f)
 {
    // default position of the camera will be world origin
+   
    // the up vector is a direction, and we will say that the up direction is the Y coordinate (it does not technically have to be a unit vector)
+   
    // default view direction will be negative Z direction (this vector must be a unit vector (that is, of length 1))
 
+   // default previous mouse position will be the world origin
 }
 
-glm::mat4 camera::get_world_to_view_matrix() const
+glm::mat4 my_camera::get_world_to_view_matrix() const
 {
    // The glm lookAt(...) function takes vector positions in world coordinates (that is, relative to the world origin).
    // If we want our camera to look in a particular direction relative to our camera, then the second argument must be 
-   // the camera's world coordinates + the desired "look at" world coordinates.  
+   // the camera's world coordinates + the desired "look at" world coordinates.  The view direction will be treated (by 
+   // me, the programmer) as a unit vector because I want to think of it as a direction even though the vector math
+   // turns out to be same as if it were a position.
+   //cout << "view direction; x='" << m_view_direction.x << "'; y='" << m_view_direction.y << "'; z='" << m_view_direction.z << "'" << endl;
    return glm::lookAt(m_position, m_position + m_view_direction, m_world_up_vector);
 }
+
+void my_camera::mouse_update(const glm::vec2& new_mouse_position)
+{
+   glm::vec2 mouse_delta = new_mouse_position - m_prev_mouse_position;
+
+   // we need to perform a rotation (??why??) on the view direction position, so force the glm rotate(...)
+   // function's return value (a mat4) to be a mat3, which will cut off the 4th row and column, which we
+   // are not concerned with because the view direction is a unit vector anyway (??is this a valid argument??)
+   float rotate_angle_x_radians = mouse_delta.x * (2.0f * 3.14159) / 360.0f;
+   m_view_direction = glm::mat3(glm::rotate(mouse_delta.x, m_world_up_vector)) * m_view_direction;
+
+   m_prev_mouse_position = new_mouse_position;
+}
+

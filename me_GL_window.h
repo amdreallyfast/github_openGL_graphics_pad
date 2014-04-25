@@ -2,6 +2,7 @@
 #define ME_GL_WINDOW_H
 
 #include <QtOpenGL\qglwidget>
+#include <QtGui\qmouseevent>
 
 //#pragma once
 
@@ -14,6 +15,10 @@ protected:
 
 	// override the widget's "paint GL" method, which is the method that QT calls whenever it needs to do some painting commands to the window through OpenGL
 	void paintGL();
+
+   // override the widget's "mouse move event"
+   // this will ??do what??
+   void mouseMoveEvent(QMouseEvent*);
 
    // define this within this class so that it can have access to the width() and height() functions for
    // when it needs to calculate aspect ratio
