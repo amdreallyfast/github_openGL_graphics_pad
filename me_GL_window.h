@@ -20,6 +20,7 @@ protected:
    // this will ??do what??
    void mouseMoveEvent(QMouseEvent*);
    void mousePressEvent(QMouseEvent*);
+   void mouseReleaseEvent(QMouseEvent*);
 
 
    // define this within this class so that it can have access to the width() and height() functions for

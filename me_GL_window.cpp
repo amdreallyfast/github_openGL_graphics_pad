@@ -137,6 +137,8 @@ void me_GL_window::initializeGL()
    }
 }
 
+float g_rotation_angle_radians = 0.0f;
+
 void me_GL_window::paintGL()
 {
    // now set up the transformation matrix buffer
@@ -149,7 +151,8 @@ void me_GL_window::paintGL()
    mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
    mat4 full_transforms[] =
    {
-      projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
+      //projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
+      projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), g_rotation_angle_radians, vec3(1.0f, 0.0f, 0.0f)),
       projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
    };
 
@@ -166,14 +169,40 @@ void me_GL_window::paintGL()
    //glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+bool mouse_is_pressed = false;
+
 void me_GL_window::mouseMoveEvent(QMouseEvent * e)
 {
-   Camera.mouse_update(glm::vec2(e->x(), e->y()));
+   static glm::vec2 prev_mouse_position(0.0f, 0.0f);
+   
+   float new_x = e->x();
+   float new_y = e->y();
+
+   if (mouse_is_pressed)
+   {
+      // rotate a cube
+      glm::vec2 mouse_delta = glm::vec2(new_x, new_y) - prev_mouse_position;
+      g_rotation_angle_radians = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
+   }
+   else
+   {
+      // rotate camera
+      prev_mouse_position.x = new_x;
+      prev_mouse_position.y = new_y;
+      Camera.mouse_update(glm::vec2(new_x, new_y));
+   }
 
    this->repaint();
 }
 
 void me_GL_window::mousePressEvent(QMouseEvent* e)
 {
+   mouse_is_pressed = true;
    cout << "mouse clicked" << endl;
+}
+
+void me_GL_window::mouseReleaseEvent(QMouseEvent*)
+{
+   mouse_is_pressed = false;
+   cout << "mouse released" << endl;
 }
