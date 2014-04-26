@@ -41,13 +41,31 @@ void my_camera::mouse_update(const glm::vec2& new_mouse_position)
 {
    glm::vec2 mouse_delta = new_mouse_position - m_prev_mouse_position;
 
-   // we need to perform a rotation (??why??) on the view direction position, so force the glm rotate(...)
+   // we need to perform a rotation (??why??) on the view direction unit vector, so force the glm rotate(...)
    // function's return value (a mat4) to be a mat3, which will cut off the 4th row and column, which we
-   // are not concerned with because the view direction is a unit vector anyway (??is this a valid argument??)
+   // are not concerned with because the view direction is a vec3 anyway (??is this a valid argument??)
    // Note: We are working in radians, so consider that when calculating your rotation angle.
-   float rotate_angle_x_radians = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
-   float rotation_angle_x_degrees = mouse_delta.x / 5;
-   m_view_direction = glm::mat3(glm::rotate(rotate_angle_x_radians, m_world_up_vector)) * m_view_direction;
+
+   // attempt to prevent "camera jump" when the mouse leaves the Qt window and re-enters elsewhere
+   // by only performing the camera view direction transform if the movement is under a limit
+   if (glm::length(mouse_delta) < 50.0f)
+   {
+      // mouse movement is less than 10 pixels, so assume that the mouse is moving smoothly 
+
+      const float ROTATION_SENSITIVITY = 0.5f;
+      float rotate_angle_rad_x = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
+      float rotate_angle_rad_y = mouse_delta.y * (2.0f * 3.14159f) / 360.0f;
+
+      m_view_direction = glm::mat3(glm::rotate(rotate_angle_rad_x * ROTATION_SENSITIVITY, m_world_up_vector)) * m_view_direction;
+      
+      // take the cross product vector of the exiting view direction with the world's up vector (??why??),
+      // then rotate the view direction around this new vector
+      glm::vec3 to_rotate_around = glm::cross(m_view_direction, m_world_up_vector);
+      m_view_direction = glm::mat3(glm::rotate(rotate_angle_rad_y * ROTATION_SENSITIVITY, to_rotate_around)) * m_view_direction;
+
+   }
+
+   
 
    m_prev_mouse_position = new_mouse_position;
 }
