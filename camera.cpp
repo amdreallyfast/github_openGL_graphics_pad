@@ -53,19 +53,19 @@ void my_camera::mouse_update(const glm::vec2& new_mouse_position)
       // mouse movement is less than 10 pixels, so assume that the mouse is moving smoothly 
 
       const float ROTATION_SENSITIVITY = 0.5f;
-      float rotate_angle_rad_x = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
-      float rotate_angle_rad_y = mouse_delta.y * (2.0f * 3.14159f) / 360.0f;
+      float rotate_angle_rad_x = -mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
+      float rotate_angle_rad_y = -mouse_delta.y * (2.0f * 3.14159f) / 360.0f;
 
-      m_view_direction = glm::mat3(glm::rotate(rotate_angle_rad_x * ROTATION_SENSITIVITY, m_world_up_vector)) * m_view_direction;
-      
       // take the cross product vector of the exiting view direction with the world's up vector (??why??),
-      // then rotate the view direction around this new vector
+      // then rotate the view direction around the world's up vector, then rotate it again around the 
+      // cross product vector
       glm::vec3 to_rotate_around = glm::cross(m_view_direction, m_world_up_vector);
-      m_view_direction = glm::mat3(glm::rotate(rotate_angle_rad_y * ROTATION_SENSITIVITY, to_rotate_around)) * m_view_direction;
+      glm::mat4 rotator_matrix =
+         glm::rotate(rotate_angle_rad_x * ROTATION_SENSITIVITY, m_world_up_vector) *
+         glm::rotate(rotate_angle_rad_y * ROTATION_SENSITIVITY, to_rotate_around);
 
+      m_view_direction = glm::mat3(rotator_matrix) * m_view_direction;
    }
-
-   
 
    m_prev_mouse_position = new_mouse_position;
 }
