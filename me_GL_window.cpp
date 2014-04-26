@@ -120,6 +120,8 @@ void me_GL_window::initializeGL()
 {
    bool ret_val = false;
 
+   setMouseTracking(true);
+
    // sets up all the open GL pointers 
    glewInit();
    glEnable(GL_DEPTH_TEST);
