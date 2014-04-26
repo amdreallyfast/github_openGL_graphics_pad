@@ -34,6 +34,7 @@ using std::left;
 // Note: QT's "mouse event" file has no extension.
 #include "camera.h"
 #include <QtGui/qmouseevent>
+#include <QtGui/qkeyevent>
 
 
 GLsizei num_indices_to_draw = 0;
@@ -205,4 +206,34 @@ void me_GL_window::mouseReleaseEvent(QMouseEvent*)
 {
    mouse_is_pressed = false;
    cout << "mouse released" << endl;
+}
+
+void me_GL_window::keyPressEvent(QKeyEvent* e)
+{
+   switch (e->key())
+   {
+   case Qt::Key::Key_W:
+      Camera.move_forward();
+      break;
+   case Qt::Key::Key_A:
+      Camera.strafe_left();
+      break;
+   case Qt::Key::Key_S:
+      Camera.move_back();
+      break;
+   case Qt::Key::Key_D:
+      Camera.strafe_right();
+      break;
+   case Qt::Key::Key_R:
+      Camera.move_up();
+      break;
+   case Qt::Key::Key_F:
+      Camera.move_down();
+      break;
+
+   default:
+      break;
+   }
+
+   this->repaint();
 }

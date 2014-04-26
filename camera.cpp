@@ -16,7 +16,9 @@ my_camera::my_camera() :
    m_position(0.0f, 0.0f, 0.0f),
    m_world_up_vector(0.0f, 1.0f, 0.0f),
    m_view_direction(0.0f, 0.0f, -1.0f),
-   m_prev_mouse_position(0.0f, 0.0f)
+   m_strafe_direction(0.0f, 0.0f, 0.0f),
+   m_prev_mouse_position(0.0f, 0.0f),
+   m_camera_move_speed(0.3f)
 {
    // default position of the camera will be world origin
    
@@ -25,6 +27,8 @@ my_camera::my_camera() :
    // default view direction will be negative Z direction (this vector must be a unit vector (that is, of length 1))
 
    // default previous mouse position will be the world origin
+
+   // default camera move speed is "moderate speed" (I don't know how to describe 0.3f movement "speed" otherwise)
 }
 
 glm::mat4 my_camera::get_world_to_view_matrix() const
@@ -59,10 +63,10 @@ void my_camera::mouse_update(const glm::vec2& new_mouse_position)
       // take the cross product vector of the exiting view direction with the world's up vector (??why??),
       // then rotate the view direction around the world's up vector, then rotate it again around the 
       // cross product vector
-      glm::vec3 to_rotate_around = glm::cross(m_view_direction, m_world_up_vector);
+      m_strafe_direction = glm::cross(m_view_direction, m_world_up_vector);
       glm::mat4 rotator_matrix =
          glm::rotate(rotate_angle_rad_x * ROTATION_SENSITIVITY, m_world_up_vector) *
-         glm::rotate(rotate_angle_rad_y * ROTATION_SENSITIVITY, to_rotate_around);
+         glm::rotate(rotate_angle_rad_y * ROTATION_SENSITIVITY, m_strafe_direction);
 
       m_view_direction = glm::mat3(rotator_matrix) * m_view_direction;
    }
@@ -70,4 +74,33 @@ void my_camera::mouse_update(const glm::vec2& new_mouse_position)
    m_prev_mouse_position = new_mouse_position;
 }
 
+void my_camera::move_forward()
+{
+   m_position += m_camera_move_speed * m_view_direction;
+}
+
+void my_camera::move_back()
+{
+   m_position -= m_camera_move_speed * m_view_direction;
+}
+
+void my_camera::strafe_left()
+{
+   m_position -= m_camera_move_speed * m_strafe_direction;
+}
+
+void my_camera::strafe_right()
+{
+   m_position += m_camera_move_speed * m_strafe_direction;
+}
+
+void my_camera::move_up()
+{
+   m_position += m_camera_move_speed * m_world_up_vector;
+}
+
+void my_camera::move_down()
+{
+   m_position -= m_camera_move_speed * m_world_up_vector;
+}
 

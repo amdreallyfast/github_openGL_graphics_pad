@@ -22,6 +22,9 @@ protected:
    void mousePressEvent(QMouseEvent*);
    void mouseReleaseEvent(QMouseEvent*);
 
+   // for keyboard inputs
+   void keyPressEvent(QKeyEvent* );
+
 
    // define this within this class so that it can have access to the width() and height() functions for
    // when it needs to calculate aspect ratio
