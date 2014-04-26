@@ -19,6 +19,8 @@ protected:
    // override the widget's "mouse move event"
    // this will ??do what??
    void mouseMoveEvent(QMouseEvent*);
+   void mousePressEvent(QMouseEvent*);
+
 
    // define this within this class so that it can have access to the width() and height() functions for
    // when it needs to calculate aspect ratio

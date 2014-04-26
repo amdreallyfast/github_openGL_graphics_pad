@@ -173,3 +173,7 @@ void me_GL_window::mouseMoveEvent(QMouseEvent * e)
    this->repaint();
 }
 
+void me_GL_window::mousePressEvent(QMouseEvent* e)
+{
+   cout << "mouse clicked" << endl;
+}

@@ -70,3 +70,4 @@ void my_camera::mouse_update(const glm::vec2& new_mouse_position)
    m_prev_mouse_position = new_mouse_position;
 }
 
+
