@@ -22,8 +22,8 @@ private:
       GLenum object_status_type,
       PFNGLGETSHADERINFOLOGPROC info_log_getter_func_ptr
       );
-   bool check_shader_status(GLint shader_ID);
-   bool check_program_status(GLint program_ID);
+   bool check_shader_status(GLuint shader_ID);
+   bool check_program_status(GLuint program_ID);
    bool read_text_from_file(const char* file_path, std::string &put_text_here);
 
    GLuint m_shader_program_ID;

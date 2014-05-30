@@ -150,10 +150,15 @@ void me_GL_window::paintGL()
    float near_plane_dist = 0.1f;
    float far_plane_dist = 10.0f;
    mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
+   
+   mat4 camera_matrix = Camera.get_world_to_view_matrix();
+   mat4 translation_matrix = translate(mat4(), vec3(1.0f, 0.0f, -9.0f));
+   mat4 rotation_matrix = rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f));
+
    mat4 full_transforms[] =
    {
       //projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
-      projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), g_rotation_angle_radians, vec3(1.0f, 0.0f, 0.0f)),
+      projection_matrix * camera_matrix * translation_matrix * rotation_matrix,
       projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
    };
 

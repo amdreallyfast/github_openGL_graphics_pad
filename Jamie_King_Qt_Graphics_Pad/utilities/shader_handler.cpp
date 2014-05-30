@@ -58,7 +58,7 @@ bool shader_handler::check_shader_program_status(
 }
 
 
-bool shader_handler::check_shader_status(GLint shader_ID)
+bool shader_handler::check_shader_status(GLuint shader_ID)
 {
    bool this_ret_val = false;
 
@@ -71,7 +71,7 @@ bool shader_handler::check_shader_status(GLint shader_ID)
    return this_ret_val;
 }
 
-bool shader_handler::check_program_status(GLint program_ID)
+bool shader_handler::check_program_status(GLuint program_ID)
 {
    bool this_ret_val = false;
 
