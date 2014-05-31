@@ -7,6 +7,68 @@
 #pragma comment (lib, "GLu32.lib")
 
 
+// declare some persistent globals for rendering and device contexts
+// - We will have a window, which is interfaced with in the Win32 world through a
+// handle.  We will draw to this window.
+// - The window will be connected to our application through the application 
+// instance handle. 
+// - The window is drawn to through the graphic device interface (GDI).  The device
+// context links the window and GDI.
+// - The OpenGL links to the device context through the render context.
+// Summary: OpenGL API call -> render context -> device context -> GDI -> window
+// ??Or something like that??
+HGLRC g_render_context_handle = NULL;
+HDC g_device_context_handle = NULL;
+HWND window_handle = NULL;
+HINSTANCE application_instance_handle;
+
+// declare some miscellaneous globals 
+// - An array of booleans to indicate which keyboard keys are currently selected.
+// - A boolean to indicate if the application is minimized or active 
+// (default true).
+// - A boolean to indicate if the application window is fullscreen or not 
+// (default true).
+bool g_keys[256];
+bool g_active = true;
+bool g_fullscreen = true;
+
+
+// forward declaration of the window message processing function
+// Note: You only need to specify the types in forward declarations.
+LRESULT CALLBACK my_window_proc(HWND, UINT, WPARAM, LPARAM);
+
+// this function will resize the viewpoirt whenever our window has been resized
+GLvoid resize_GL_scene(GLsizei new_width, GLsizei new_height)
+{
+   // this check is a crude and simple yet effective way to avoid an aspect ratio
+   // problem of dividing by 0
+   if (0 == new_height)
+   {
+      new_height = 1;
+   }
+
+   // resize the GL viewport
+   glViewport(0, 0, new_width, new_height);
+
+   // select the projection matrix, reset it, and set the perspective matrix
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   gluPerspective(
+      45.0f,            // 45 degree field of view
+      (GLfloat)new_width / (GLfloat)new_height,  // aspect ratio
+      0.1f,             // near plane
+      100.0f);          // far plane
+
+   // load and reset the model-view matrix
+   glMatrixMode(GL_MODELVIEW);
+   glLoadIdentity();
+}
+
+
+
+
+
+
 static const UINT SCREEN_WIDTH_PIXELS = 800;
 static const UINT SCREEN_HEIGHT_PIXELS = 600;
 
