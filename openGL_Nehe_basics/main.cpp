@@ -19,8 +19,8 @@
 // ??Or something like that??
 HGLRC g_render_context_handle = NULL;
 HDC g_device_context_handle = NULL;
-HWND window_handle = NULL;
-HINSTANCE application_instance_handle;
+HWND g_window_handle = NULL;
+HINSTANCE g_application_instance_handle;
 
 // declare some miscellaneous globals 
 // - An array of booleans to indicate which keyboard keys are currently selected.
@@ -65,7 +65,126 @@ GLvoid resize_GL_scene(GLsizei new_width, GLsizei new_height)
 }
 
 
+// do all setup for openGL
+bool init_GL()
+{
+   glShadeModel(GL_SMOOTH);
+   glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
 
+   glClearDepth(1.0f);
+   glEnable(GL_DEPTH_TEST);
+   glDepthFunc(GL_LEQUAL);    // depth test is "less than or equal"
+
+   // take a small performance hit, but make the perspective look better
+   //??try leaving out??
+   glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); 
+
+   return true;
+}
+
+
+// this is variable code for rendering a single frame
+bool draw_GL_scene()
+{
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+   // reset the current model-view matrix
+   glMatrixMode(GL_MODELVIEW);
+   glLoadIdentity();
+
+   // ??stuff here??
+   
+   return true;
+}
+
+
+// this function releases the context resources and the window handle, and it is 
+// called when the program starts to quit
+GLvoid kill_GL_window()
+{
+   // on some video cards, destroying the window before disabling fullscreen mode
+   // will make the desktop corrupt, so change it to window mode before killing it
+   if (g_fullscreen)
+   {
+      ChangeDisplaySettings(NULL, 0);
+      ShowCursor(TRUE);
+   }
+
+   // check if we have a render context handle 
+   if (g_render_context_handle)
+   {
+      // try to release the render and device contexts from use by telling GL to
+      // use NULL for both
+      if (!wglMakeCurrent(NULL, NULL))
+      {
+         // couldn't stop using one or both of the contexts; show an error message
+         MessageBox(
+            NULL,
+            L"Release of DC and RC failed.",
+            L"SHUTDOW ERROR",
+            MB_OK | MB_ICONINFORMATION);
+      }
+
+      // regardless of what happened, try to delete the render context
+      if (!wglDeleteContext(g_render_context_handle))
+      {
+         // failed to delete
+         MessageBox(
+            NULL,
+            L"Release rendering context failed.",
+            L"SHUTDOW ERROR",
+            MB_OK | MB_ICONINFORMATION);
+      }
+
+      // regardless of what happened (??good idea??), set the handle to NULL
+      g_render_context_handle = NULL;
+   }
+
+   // check for a device context and delete it if it exists
+   //??how does this check work? is the first half even necessary??
+   if (g_device_context_handle && 
+      !ReleaseDC(g_window_handle, g_device_context_handle))
+   {
+      // failed to release device context
+      MessageBox(
+         NULL,
+         L"Release device context failed.",
+         L"SHUTDOWN ERROR",
+         MB_OK | MB_ICONINFORMATION);
+
+      // force the handle to NULL (??good idea??)
+      g_device_context_handle = NULL;
+   }
+
+   // check for a window handle and delete it if it exists
+   if (g_window_handle && !DestroyWindow(g_window_handle))
+   {
+      MessageBox(
+         NULL,
+         L"Could not release window handle.",
+         L"SHUTDOWN ERROR",
+         MB_OK | MB_ICONINFORMATION);
+
+      // force the handle to NULL (??good idea??)
+      g_window_handle = NULL;
+   }
+
+   // lastly, try to unregister our window class from the application so that the
+   // window can be properly killed and won't leave a dangling registered window
+   //??how would this happen??
+   if (!UnregisterClass(L"OpenGL", g_application_instance_handle))
+   {
+      // couldn't unregister window
+      MessageBox(
+         NULL,
+         L"Could not unregister class.",
+         L"SHUTDOWN ERROR",
+         MB_OK | MB_ICONINFORMATION);
+
+      // force the handle to NULL (??good idea??)
+      g_application_instance_handle = NULL;
+   }
+}
 
 
 
