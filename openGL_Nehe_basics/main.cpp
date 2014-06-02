@@ -187,6 +187,348 @@ GLvoid kill_GL_window()
 }
 
 
+bool create_GL_window(char *title_arg, int width_arg, int height_arg, int bits_arg, bool fullscreen_flag_arg)
+{
+   LPCWSTR window_class_name = L"OpenGL";
+
+   // make and fill in the window class structure
+   WNDCLASS wc;
+   wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;  // redraw on move, use our own device context instance for this window
+   wc.lpfnWndProc = my_window_proc;    // the window message processing function
+   wc.cbClsExtra = 0;                  // no extra window data
+   wc.cbWndExtra = 0;                  // no extra window data
+
+   g_application_instance_handle = GetModuleHandle(NULL);
+   wc.hInstance = g_application_instance_handle;   // the application that this window belongs to
+   wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);   // default window icon
+   wc.hCursor = LoadCursor(NULL, IDC_ARROW); // ??what kind?? arrow pointer
+   wc.hbrBackground = NULL;            // default background is black; openGL draws this
+   wc.lpszMenuName = NULL;             // no menu
+   wc.lpszClassName = window_class_name;        // the window class name
+
+   // register the window class
+   if (!RegisterClass(&wc))
+   {
+      MessageBox(
+         NULL,
+         L"Failed to register the window class.",
+         L"ERROR",
+         MB_OK | MB_ICONEXCLAMATION);
+      return false;
+   }
+
+
+   // handle the "fullscreen" options
+   g_fullscreen = fullscreen_flag_arg;     // set the global flag
+   if (g_fullscreen)
+   {
+      // create and configure a "device mode" structure
+      DEVMODE dm_screen_settings;
+      memset(&dm_screen_settings, 0, sizeof(dm_screen_settings));
+      dm_screen_settings.dmSize = sizeof(dm_screen_settings);
+      dm_screen_settings.dmPelsWidth = width_arg;      // pixel width
+      dm_screen_settings.dmPelsHeight = height_arg;    // pixel height
+      dm_screen_settings.dmBitsPerPel = bits_arg;      // bits per pixel
+      dm_screen_settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+      // try to change to fullscreen
+      if (ChangeDisplaySettings(&dm_screen_settings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+      {
+         if (IDYES ==
+            MessageBox(
+            NULL,
+            L"The requested fullscreen mode is not supported by\nyour video card.\n\nUse windowed mode instead?",
+            L"NeHe GL",
+            MB_YESNO | MB_ICONEXCLAMATION))
+         {
+            // user decided to remain in windowed mode
+            g_fullscreen = false;
+         }
+         else
+         {
+            // user said "no, don't stay in windowed mode", so quite
+            MessageBox(
+               NULL,
+               L"Program will now close.",
+               L"ERROR",
+               MB_OK | MB_ICONSTOP);
+            return false;
+         }
+      }
+   }
+
+   // store normal and extended styles in their own variables
+   DWORD dw_extended_style;
+   DWORD dw_style;
+
+   // in the event that we are not fullscreen or the switch to fullscreen had a 
+   // problem and the user chose to remain in window mode, check for fullscreen 
+   // again
+   if (g_fullscreen)
+   {
+      // still fullscreen, so record some style information
+
+      // force a (??the??) top level window down to the taskbar once our window is
+      // visible (??the wone that we are making??)
+      dw_extended_style = WS_EX_APPWINDOW;
+      
+      // a popup window has no borders; excellent for fullscreen mode
+      dw_style = WS_POPUP;
+
+      // hide the cursor (this is a personal tutorial preference)
+      ShowCursor(FALSE);
+   }
+   else
+   {
+      // not in fullscreen mode for whatever reason
+
+      // the style will be a standard window with a fancy edge
+      dw_extended_style = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+      dw_style = WS_OVERLAPPEDWINDOW;
+   }
+
+   // fill in the default values of the rectange that will be used to calculate the
+   // required window dimenions based on the desired drawing area size
+   RECT window_rect;
+   window_rect.left = (long)0;
+   window_rect.right = (long)width_arg;
+   window_rect.top = (long)0;
+   window_rect.bottom = (long)height_arg;
+   
+   // adjust the rectangle dimensions based on our styles so far
+   //??what about the boolean "menu" option (third arg)? is that already covered by the styles and thus redundant??
+   AdjustWindowRectEx(&window_rect, dw_style, FALSE, dw_extended_style);
+
+   // create the window
+   g_window_handle = CreateWindowEx(
+      dw_extended_style,
+      window_class_name,
+      (LPCWSTR)title_arg,
+      dw_style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,  // prevent other windows from drawing over/into this window (required for openGL to work properly)
+      0,                      // default x
+      0,                      // default y
+      window_rect.right - window_rect.left,
+      window_rect.bottom - window_rect.top,
+      NULL,                   // no parent window
+      NULL,                   // no menu
+      g_application_instance_handle,
+      NULL);                  // don't pass anything to WM_CREATE(??why??)
+
+   if (!g_window_handle)
+   {
+      // failed to create window
+      kill_GL_window();
+      MessageBox(
+         NULL,
+         L"Window creation error.",
+         L"ERROR",
+         MB_OK | MB_ICONEXCLAMATION);
+      return false;
+   }
+
+   // create a pixel format structure (??why static??)
+   static PIXELFORMATDESCRIPTOR pfd = 
+   {
+      sizeof(PIXELFORMATDESCRIPTOR),   // size of this descriptor
+      1,                               // version number
+      PFD_DRAW_TO_WINDOW |             // must support Win32 windows
+      PFD_SUPPORT_OPENGL |             // must suppor openGL
+      PFD_DOUBLEBUFFER,                // must support double buffering
+      PFD_TYPE_RGBA,                   // color has red, green, blue, and alpha
+      bits_arg,                        // set color depth (bits per color)
+      0, 0, 0, 0, 0, 0,                // ignore color bits and bit shifts
+      0,                               // no alpha buffer
+      0,                               // ignore alpha bit shift 
+      0,                               // no accumulation buffer
+      0, 0, 0, 0,                      // ignore accumulation bits
+      16,                              // 16bit Z-buffer (depth buffer)
+      0,                               // no stencil buffer
+      0,                               // no auxiliary buffer
+      PFD_MAIN_PLANE,                  // main drawing layer
+      0,                               // reserved (??for what??)
+      0, 0, 0                          // layer masks ignored
+   };
+
+   // try to grab the device context so that you can set the pixel format
+   if (!(g_device_context_handle = GetDC(g_window_handle)))
+   {
+      // couldn't get device context; bad
+      kill_GL_window();
+      MessageBox(
+         NULL,
+         L"Can't create a GL device context.",
+         L"ERROR",
+         MB_OK | MB_ICONEXCLAMATION);
+      return false;
+   }
+
+   // try to find a pixel format that matches what we want
+   GLuint pixel_format;
+   if (!(pixel_format = ChoosePixelFormat(g_device_context_handle, &pfd)))
+   {
+      // couldn't find a pixel format that matched what we wanted
+      kill_GL_window();
+      MessageBox(
+         NULL,
+         L"Can't find a suitable pixel format.",
+         L"ERROR",
+         MB_OK | MB_ICONEXCLAMATION);
+      return false;
+   }
+
+   // if a pixel format was found, try to set it
+   if (!SetPixelFormat(g_device_context_handle, pixel_format, &pfd))
+   {
+      kill_GL_window();
+      MessageBox(
+         NULL,
+         L"Can't set the pixel format.",
+         L"ERROR",
+         MB_OK | MB_ICONEXCLAMATION);
+      return false;
+   }
+
+   // if pixel format was set properly, try to create a rendering context
+   if (!(g_render_context_handle = wglCreateContext(g_device_context_handle)))
+   {
+      kill_GL_window();
+      MessageBox(
+         NULL,
+         L"Can't create a GL rendering context.",
+         L"ERROR",
+         MB_OK | MB_ICONEXCLAMATION);
+      return false;
+   }
+
+   // if we created both device and rendering contexts, then make the render 
+   // context active
+   if (!wglMakeCurrent(g_device_context_handle, g_render_context_handle))
+   {
+      kill_GL_window();
+      MessageBox(
+         NULL,
+         L"Can't activate the GL rendering context.",
+         L"ERROR",
+         MB_OK | MB_ICONEXCLAMATION);
+      return false;
+   }
+
+   // if everything went smoothly and our window was created, then show the window,
+   // set it as the foreground window, set the focus to be that window, resize the
+   // viewport to match, and finally run the "init GL" function for setting various
+   // matrices
+   ShowWindow(g_window_handle, SW_SHOW);
+   SetForegroundWindow(g_window_handle);
+   SetFocus(g_window_handle);
+   resize_GL_scene(width_arg, height_arg);
+   if (!init_GL())
+   {
+      kill_GL_window();
+      MessageBox(
+         NULL,
+         L"GL init failed.",
+         L"ERROR",
+         MB_OK | MB_ICONEXCLAMATION);
+      return false;
+   }
+
+
+   // we made it this far, so it is safe to assume that everything went well and 
+   // that we can return "true"
+   return true;
+}
+
+
+// define the window message processing function
+LRESULT CALLBACK my_window_proc(
+   HWND window_handle_arg,    // handle for the window that the message came from
+   UINT u_msg,                // message for the window
+   WPARAM w_param,            // additional message information
+   LPARAM l_param)            // additional message information
+{
+   switch (u_msg)
+   {
+   case WM_ACTIVATE:
+   {
+      // check minimization state
+      if (!HIWORD(w_param))
+      {
+         // set program as active
+         g_active = true;
+      }
+      else
+      {
+         // set program as inactive
+         g_active = false;
+      }
+
+      return 0;
+   }
+   case WM_SYSCOMMAND:
+   {
+      switch (w_param)
+      {
+      case SC_SCREENSAVE:     // screensaver trying to start?
+      case SC_MONITORPOWER:   // monitor trying to enter power save mode?
+         return 0;            // prevent the monitor from doing that (??how??)
+
+      default:
+         break;
+      }
+
+      break;
+   }
+   case WM_CLOSE:
+   {
+      PostQuitMessage(0);     // send a "quit" message with exit code 0 ??to where??
+      return 0;
+   }
+   case WM_KEYDOWN:
+   {
+      // a key is being held down
+      g_keys[w_param] = true;
+      return 0;
+   }
+   case WM_KEYUP:
+   {
+      // a key is being released
+      g_keys[w_param] = false;
+      return 0;
+   }
+   case WM_SIZE:
+   {
+      resize_GL_scene(LOWORD(w_param), HIWORD(l_param));
+      return 0;
+   }
+
+   default:
+      break;
+   }
+
+   // pass all unhandled messages to the default window message processor
+   return DefWindowProc(window_handle_arg, u_msg, w_param, l_param);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 static const UINT SCREEN_WIDTH_PIXELS = 800;
 static const UINT SCREEN_HEIGHT_PIXELS = 600;
