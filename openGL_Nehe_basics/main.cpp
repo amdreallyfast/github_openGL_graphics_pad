@@ -6,6 +6,8 @@
 #pragma comment (lib, "OpenGL32.lib")
 #pragma comment (lib, "GLu32.lib")
 
+// for mbstowcs (multi-byte string to wide character string)
+#include <stdlib.h>
 
 // declare some persistent globals for rendering and device contexts
 // - We will have a window, which is interfaced with in the Win32 world through a
@@ -187,7 +189,7 @@ GLvoid kill_GL_window()
 }
 
 
-bool create_GL_window(char *title_arg, int width_arg, int height_arg, int bits_arg, bool fullscreen_flag_arg)
+bool create_GL_window(const char *title_arg, int width_arg, int height_arg, int bits_arg, bool fullscreen_flag_arg)
 {
    LPCWSTR window_class_name = L"OpenGL";
 
@@ -300,10 +302,19 @@ bool create_GL_window(char *title_arg, int width_arg, int height_arg, int bits_a
    AdjustWindowRectEx(&window_rect, dw_style, FALSE, dw_extended_style);
 
    // create the window
+   // Note: Our window title is being passed as a const char *, but the argument to
+   // the window creation function needs a const wchar_t *, so do a conversion.
+
+   // put the "+1" in for the null terminator, even though it isn't technically 
+   // converted, because we need the space
+   unsigned int chars_to_convert = strlen(title_arg) + 1;
+   wchar_t *converted_title_ptr = (wchar_t *)malloc(chars_to_convert * sizeof(wchar_t));
+   int converted_chars = mbstowcs(converted_title_ptr, title_arg, chars_to_convert);
+
    g_window_handle = CreateWindowEx(
       dw_extended_style,
       window_class_name,
-      (LPCWSTR)title_arg,
+      converted_title_ptr,
       dw_style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,  // prevent other windows from drawing over/into this window (required for openGL to work properly)
       0,                      // default x
       0,                      // default y
@@ -313,6 +324,9 @@ bool create_GL_window(char *title_arg, int width_arg, int height_arg, int bits_a
       NULL,                   // no menu
       g_application_instance_handle,
       NULL);                  // don't pass anything to WM_CREATE(??why??)
+
+   // clean up the heap memory that was allocated for the title conversoin
+   delete converted_title_ptr;
 
    if (!g_window_handle)
    {
@@ -535,8 +549,7 @@ int WINAPI WinMain(
       g_fullscreen = true;
    }
 
-   //if (!create_GL_window("NeHe's openGL Framework", 640, 480, 16, g_fullscreen))
-   if (!create_GL_window("bildge", 640, 480, 16, g_fullscreen))
+   if (!create_GL_window("NeHe's openGL Framework", 640, 480, 16, g_fullscreen))
    {
       return 0;
    }
