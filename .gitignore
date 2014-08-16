@@ -15,18 +15,25 @@
 #  and then tell gitignore to not ignore any subfolders.
 #  This effectively un-does everything that "*" does, except that it results 
 #  in less typing for me.
+
+# ignore everything
 *
 
-# now tell gitignore to not ignore gitignore and gitattributes because these 
-# are git special repository files that do magic, so I should keep them around
+# don't ignore these code files
+!*.cpp
+!*.h
+!*.txt
+!*.glsl
+
+# we want to keep these around
 !.gitignore
 !.gitattributes
 
-# don't ignore my project files, which are in C++ and text files that I have 
-# appended with the suffix "glsl", or "GL Scripting Language"
-!*.h
-!*.cpp
-!*.glsl
+# keep solution and  project files and filters so we can see how they change 
+# through the project
+!*.sln
+!*.vcxproj
+!*.vcxproj.filters
 
-# now un-ignore all subfolders
+# now unignore all sub-folders
 !**/

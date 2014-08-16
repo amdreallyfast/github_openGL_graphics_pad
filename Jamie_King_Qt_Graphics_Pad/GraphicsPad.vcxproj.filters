@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="me_GL_window.cpp" />
+    <ClCompile Include="Primitives\shape_generator.cpp" />
+    <ClCompile Include="utilities\shader_handler.cpp" />
+    <ClCompile Include="camera.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="me_GL_window.h" />
+    <ClInclude Include="Primitives\vertex.h" />
+    <ClInclude Include="Primitives\shape_data.h" />
+    <ClInclude Include="Primitives\shape_generator.h" />
+    <ClInclude Include="utilities\shader_handler.h" />
+    <ClInclude Include="camera.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="fragment_shader.glsl" />
+    <None Include="vertex_shader.glsl" />
+  </ItemGroup>
+</Project>

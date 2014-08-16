@@ -155,11 +155,12 @@ void me_GL_window::paintGL()
    mat4 translation_matrix = translate(mat4(), vec3(1.0f, 0.0f, -9.0f));
    mat4 rotation_matrix = rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f));
 
+
    mat4 full_transforms[] =
    {
-      //projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(1.0f, 0.0f, -3.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
       projection_matrix * camera_matrix * translation_matrix * rotation_matrix,
-      projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
+      //projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
+      projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f)),
    };
 
    //glBindBuffer(GL_ARRAY_BUFFER, transformation_matrix_buffer_ID);
@@ -219,12 +220,14 @@ void me_GL_window::keyPressEvent(QKeyEvent* e)
    {
    case Qt::Key::Key_W:
       Camera.move_forward();
+      //g_rotation_angle_radians += 0.1f;
       break;
    case Qt::Key::Key_A:
       Camera.strafe_left();
       break;
    case Qt::Key::Key_S:
       Camera.move_back();
+      //g_rotation_angle_radians -= 0.1f;
       break;
    case Qt::Key::Key_D:
       Camera.strafe_right();
