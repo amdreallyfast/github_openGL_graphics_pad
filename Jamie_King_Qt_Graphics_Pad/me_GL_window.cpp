@@ -45,7 +45,7 @@ GLuint transformation_matrix_buffer_ID;
 
 void me_GL_window::send_data_to_open_GL()
 {
-   my_shape_data shape = my_shape_generator::make_cube();
+   my_shape_data shape = my_shape_generator::make_3d_arrow();
 
    GLuint vertex_buffer_ID;
    glGenBuffers(1, &vertex_buffer_ID);
@@ -158,7 +158,7 @@ void me_GL_window::paintGL()
 
    mat4 full_transforms[] =
    {
-      projection_matrix * camera_matrix * translation_matrix * rotation_matrix,
+      projection_matrix * camera_matrix * translation_matrix,// * rotation_matrix,
       //projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
       projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f)),
    };

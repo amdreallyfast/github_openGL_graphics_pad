@@ -195,49 +195,84 @@ my_shape_data my_shape_generator::make_cube()
 
 my_shape_data my_shape_generator::make_3d_arrow()
 {
-   my_shape_data cube;
+   my_shape_data arrow;
 
-   //my_vertex verts[] =
-   //{
+   // only need to record the vertices once and let the indices do the duplication
+   // Note: +Z face is red, -Z face is blue, and the sides will be blended.
+   my_vertex verts[] =
+   {
+      // +Z face of rectangle
+      vec4(-0.5f, +1.0f, +0.5f, 1.0f),    // 0
+      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
+      vec4(-0.5f, -2.0f, +0.5f, 1.0f),    // 1
+      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
+      vec4(+0.5f, -2.0f, +0.5f, 1.0f),    // 2
+      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
+      vec4(+0.5f, +1.0f, +0.5f, 1.0f),    // 3
+      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
 
-   //};
+      // +Z face of arrow triangle 
+      vec4(+0.0f, +2.0f, +0.5f, 1.0f),    // 4
+      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
+      vec4(-1.0f, +1.0f, +0.5f, 1.0f),    // 5
+      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
+      vec4(+1.0f, +1.0f, +0.5f, 1.0f),    // 6
+      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
 
-   //// record some size data
-   //cube.size_bytes_per_vertex = sizeof(*verts);
-   //cube.size_bytes_per_position_vertex = sizeof(verts->position);
-   //cube.size_bytes_per_color_vertex = sizeof(verts->color);
-   //cube.num_position_entries_per_vertex = sizeof(verts->position) / sizeof(verts->position.x);
-   //cube.num_color_entries_per_vertex = sizeof(verts->color) / sizeof(verts->color.x);
+      // -Z face of rectangle
+      vec4(-0.5f, +1.0f, -0.5f, 1.0f),    // 7
+      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
+      vec4(-0.5f, -2.0f, -0.5f, 1.0f),    // 8
+      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
+      vec4(+0.5f, -2.0f, -0.5f, 1.0f),    // 9
+      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
+      vec4(+0.5f, +1.0f, -0.5f, 1.0f),    // 10
+      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
+
+      // -Z face of arrow triangle
+      vec4(+0.0f, +2.0f, -0.5f, 1.0f),    // 11
+      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
+      vec4(-1.0f, +1.0f, -0.5f, 1.0f),    // 12
+      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
+      vec4(+1.0f, +1.0f, -0.5f, 1.0f),    // 13
+      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
+   };
+
+   GLushort indices[] =
+   {
+      // rectangle
+      0, 1, 2, 0, 2, 3,    // +Z
+      7, 8, 9, 7, 9, 10,   // -Z
+      3, 2, 9, 3, 9, 10,   // +X
+      0, 1, 8, 0, 8, 7,    // -X
+      1, 2, 9, 1, 9, 8,    // -Y (base)
+
+      // triangle
+      4, 5, 0, 4, 0, 3, 4, 3, 6,          // +Z
+      11, 12, 7, 11, 7, 10, 11, 10, 13,   // -Z
+      3, 6, 13, 3, 13, 10,    // -Y (overhang on +X)
+      5, 0, 7, 5, 7, 12,      // -Y (overhang on -X)
+      4, 6, 13, 4, 13, 11,    // +Y (slanted face on +X)
+      5, 4, 11, 5, 11, 12,    // +Y (slanted face on -X)
+   };
+
+   // record some size data
+   arrow.size_bytes_per_vertex = sizeof(*verts);
+   arrow.size_bytes_per_position_vertex = sizeof(verts->position);
+   arrow.size_bytes_per_color_vertex = sizeof(verts->color);
+   arrow.num_position_entries_per_vertex = sizeof(verts->position) / sizeof(verts->position.x);
+   arrow.num_color_entries_per_vertex = sizeof(verts->color) / sizeof(verts->color.x);
+
+   GLuint array_size_bytes = sizeof(verts);
+   arrow.num_vertices = array_size_bytes / sizeof(*verts);
+   arrow.vertices = new my_vertex[arrow.num_vertices];
+   memcpy(arrow.vertices, verts, array_size_bytes);
+
+   array_size_bytes = sizeof(indices);
+   arrow.num_indices = array_size_bytes / sizeof(*indices);
+   arrow.indices = new GLushort[arrow.num_indices];
+   memcpy(arrow.indices, indices, array_size_bytes);
 
 
-
-   //GLuint array_size_bytes = sizeof(verts);
-   //cube.num_vertices = array_size_bytes / sizeof(*verts);
-   //cube.vertices = new my_vertex[cube.num_vertices];
-   //memcpy(cube.vertices, verts, array_size_bytes);
-
-
-   //// copied from video
-   //// Note: Recall that the following indexs to the vertices array will access "my_vertex" structs, not vec4(...) 
-   //// items (they seem to be some kind of template, but I don't know exactly what, so I won't call them structs or
-   //// objects).  At each "my_vertex" struct, that address will point to the first of four position floats, and 
-   //// following that are 4 color floats.  
-   //// So this all works out just peachy.
-   //GLushort indices[] =
-   //{
-   //   0, 1, 2, 0, 2, 3,     // top
-   //   4, 5, 6, 4, 6, 7,     // front
-   //   8, 9, 10, 8, 10, 11,     // right
-   //   12, 13, 14, 12, 14, 15,     // left
-   //   16, 17, 18, 16, 18, 19,     // back
-   //   20, 22, 21, 20, 23, 22,     // bottom
-   //};
-
-   //array_size_bytes = sizeof(indices);
-   //cube.num_indices = array_size_bytes / sizeof(*indices);
-   //cube.indices = new GLushort[cube.num_indices];
-   //memcpy(cube.indices, indices, array_size_bytes);
-
-
-   return cube;
+   return arrow;
 }
