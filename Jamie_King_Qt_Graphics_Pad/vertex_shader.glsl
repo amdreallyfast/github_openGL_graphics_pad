@@ -6,7 +6,8 @@ in layout(location = 1) vec4 vert_in_color;
 // Note: This mat4 actually takes up locations 2, 3, 4, and 5 because
 // each row has to be sent as its own vertex attribute object.  There
 // is no way to send them all at once, sadly.
-in layout(location = 2) mat4 full_transform_matrix;
+//in layout(location = 2) mat4 full_transform_matrix;
+uniform mat4 full_transform_matrix;
 
 out vec4 vert_out_color;
 

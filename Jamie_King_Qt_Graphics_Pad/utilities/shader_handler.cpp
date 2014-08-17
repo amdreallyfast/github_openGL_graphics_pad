@@ -170,7 +170,7 @@ bool shader_handler::install_shaders()
    return ok_so_far;
 }
 
-GLuint shader_handler::get_shader_program_ID()
+GLint shader_handler::get_shader_program_ID()
 {
    return m_shader_program_ID;
 }

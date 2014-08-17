@@ -9,7 +9,7 @@ class shader_handler
 public:
    static shader_handler& get_instance();
    bool install_shaders();
-   GLuint get_shader_program_ID();
+   GLint get_shader_program_ID();
    ~shader_handler();
 
 private:
