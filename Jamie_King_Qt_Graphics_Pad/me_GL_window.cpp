@@ -40,60 +40,84 @@ using std::left;
 GLsizei num_indices_to_draw = 0;
 my_camera Camera;
 
-GLuint transformation_matrix_buffer_ID;
+// The buffer IDs are as follows:
+// - vertex buffer: stores position and color data
+// - index buffer: stores indices of position/color combos in the vertex buffer
+// - vertex array object: stores vertex attrib array and pointer attribues, relieving you of the burden of having to re-specify them manually on every draw call if you are drawing from different vertex buffers
+
+GLuint g_cube_vertex_buffer_ID;
+GLuint g_cube_index_buffer_ID;
+GLuint g_cube_vertex_array_object_ID;
+GLuint g_cube_num_indices = 0;
+
+GLuint g_arrow_vertex_buffer_ID;
+GLuint g_arrow_index_buffer_ID;
+GLuint g_arrow_vertex_array_object_ID;
+GLuint g_arrow_num_indices = 0;
+
+GLuint g_transformation_matrix_buffer_ID;
+GLuint g_transformation_matrix_vertex_array_object_ID;
 
 
 void me_GL_window::send_data_to_open_GL()
 {
-   my_shape_data shape = my_shape_generator::make_3d_arrow();
+   // cube
+   my_shape_data shape = my_shape_generator::make_cube();
+   g_cube_num_indices = shape.num_indices;
 
-   GLuint vertex_buffer_ID;
-   glGenBuffers(1, &vertex_buffer_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_ID);
+   glGenBuffers(1, &g_cube_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_cube_vertex_buffer_ID);
    glBufferData(GL_ARRAY_BUFFER, shape.vertex_buffer_size(), shape.vertices, GL_STATIC_DRAW);
-   glEnableVertexAttribArray(0);
-   glVertexAttribPointer(
-      0,
-      shape.num_position_entries_per_vertex,
-      GL_FLOAT,
-      GL_FALSE,
-      shape.size_bytes_per_vertex,
-      0
-      );
 
-   glEnableVertexAttribArray(1);
-   glVertexAttribPointer(
-      1, 
-      shape.num_color_entries_per_vertex, 
-      GL_FLOAT, 
-      GL_FALSE, 
-      shape.size_bytes_per_vertex, 
-      (char*)(shape.size_bytes_per_position_vertex)
-      );
-
-   GLuint index_buffer_ID;
-   glGenBuffers(1, &index_buffer_ID);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_ID);
+   glGenBuffers(1, &g_cube_index_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_cube_index_buffer_ID);
    glBufferData(GL_ELEMENT_ARRAY_BUFFER, shape.index_buffer_size(), shape.indices, GL_STATIC_DRAW);
 
-   num_indices_to_draw = shape.num_indices;
+   // oddly enough, the "gen vertex array" only generates an ID, while the "bind" call sets aside the array memory if it hasn't been done yet
+   glGenVertexArrays(1, &g_cube_vertex_array_object_ID);
+   glBindVertexArray(g_cube_vertex_array_object_ID);
+   glEnableVertexAttribArray(0);
+   glVertexAttribPointer(0, shape.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, shape.size_bytes_per_vertex, 0);
+   glEnableVertexAttribArray(1);
+   glVertexAttribPointer(1, shape.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, shape.size_bytes_per_vertex, (char*)(shape.size_bytes_per_position_vertex));
 
    // take care of any allocated memory
    shape.cleanup();
 
-   // we are going to be sending two transformation 4x4 matrices to the vertex shader, but we don't
-   // want to send the data until the mouse starts moving
 
+   // arrow
+   shape = my_shape_generator::make_3d_arrow();
+   glGenBuffers(1, &g_arrow_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_arrow_vertex_buffer_ID);
+   glBufferData(GL_ARRAY_BUFFER, shape.vertex_buffer_size(), shape.vertices, GL_STATIC_DRAW);
+
+   glGenBuffers(1, &g_arrow_index_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_arrow_index_buffer_ID);
+   glBufferData(GL_ELEMENT_ARRAY_BUFFER, shape.index_buffer_size(), shape.indices, GL_STATIC_DRAW);
+
+   glGenVertexArrays(1, &g_arrow_vertex_array_object_ID);
+   glBindVertexArray(g_arrow_vertex_array_object_ID);
+   glEnableVertexAttribArray(0);
+   glVertexAttribPointer(0, shape.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, shape.size_bytes_per_position_vertex, 0);
+   glEnableVertexAttribArray(1);
+   glVertexAttribPointer(1, shape.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, shape.size_bytes_per_color_vertex, (char*)(shape.size_bytes_per_position_vertex));
+
+   shape.cleanup();
+
+
+   // the transform matrix takes up vertex attribute arrays 2 - 5 inclusive, so go ahead and make a vertex buffer object for this too
    // Note: mat4 objects are specified in the vertex attribute object by row, so 
    // they are sent in 4 sets of 4 floats.  Unfortunately, they cannot be sent 
    // as a whole with a single attribute object (for example, you could not 
    // specify the type as "4 * GL_FLOAT").  To send them, you have to send a row
    // in its own vertex attribute object, which means that a matrix takes up 4 
    // attribute objects.
-   transformation_matrix_buffer_ID;
-   glGenBuffers(1, &transformation_matrix_buffer_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, transformation_matrix_buffer_ID);
+   glGenBuffers(1, &g_transformation_matrix_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_transformation_matrix_buffer_ID);
    glBufferData(GL_ARRAY_BUFFER, sizeof(mat4) * 2, 0, GL_DYNAMIC_DRAW);
+
+   glGenVertexArrays(1, &g_transformation_matrix_vertex_array_object_ID);
+   glBindVertexArray(g_transformation_matrix_vertex_array_object_ID);
    glEnableVertexAttribArray(2);
    glEnableVertexAttribArray(3);
    glEnableVertexAttribArray(4);
@@ -106,11 +130,11 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 8));
    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 12));
 
-   // send down one matrix per draw instance
-   glVertexAttribDivisor(2, 1);
-   glVertexAttribDivisor(3, 1);
-   glVertexAttribDivisor(4, 1);
-   glVertexAttribDivisor(5, 1);
+   //// send down one matrix per draw instance
+   //glVertexAttribDivisor(2, 1);
+   //glVertexAttribDivisor(3, 1);
+   //glVertexAttribDivisor(4, 1);
+   //glVertexAttribDivisor(5, 1);
 
    // clean up
    //glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -142,6 +166,10 @@ float g_rotation_angle_radians = 0.0f;
 
 void me_GL_window::paintGL()
 {
+   // set the world of viewport dimensions to be the size of the window
+   glViewport(0, 0, width(), height());
+   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
    // now set up the transformation matrix buffer
    // Note: The calls to width() and height() are only useful on startup because they are not being
    // calculated on every call to paintGL(), so the aspect ratio will get screwed up when you resize.
@@ -151,27 +179,29 @@ void me_GL_window::paintGL()
    float far_plane_dist = 10.0f;
    mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
    
-   mat4 camera_matrix = Camera.get_world_to_view_matrix();
+   mat4 world_to_view_matrix = projection_matrix * Camera.get_world_to_view_matrix();
+
    mat4 translation_matrix = translate(mat4(), vec3(1.0f, 0.0f, -9.0f));
    mat4 rotation_matrix = rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f));
 
 
    mat4 full_transforms[] =
    {
-      projection_matrix * camera_matrix * translation_matrix,// * rotation_matrix,
-      //projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
-      projection_matrix * Camera.get_world_to_view_matrix() * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f)),
+      world_to_view_matrix * translate(mat4(), vec3(1.0f, 0.0f, -9.0f)) * rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f)),
+      world_to_view_matrix * translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) * rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f)),
+      world_to_view_matrix * translate(mat4(), vec3(-1.0f, +1.0f, -5.0f)) * rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(1.0f, 0.0f, 0.0f)),
    };
 
-   //glBindBuffer(GL_ARRAY_BUFFER, transformation_matrix_buffer_ID);
+   //glBindBuffer(GL_ARRAY_BUFFER, g_transformation_matrix_buffer_ID);
+   //glBindVertexArray(g_transformation_matrix_vertex_array_object_ID);
    glBufferData(GL_ARRAY_BUFFER, sizeof(full_transforms), full_transforms, GL_DYNAMIC_DRAW);
 
-   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-   
-   // set the world of viewport dimensions to be the size of the window
-   glViewport(0, 0, width(), height());   
+   //glBindVertexArray(g_cube_vertex_array_object_ID);
+   glDrawElementsInstanced(GL_TRIANGLES, g_cube_num_indices, GL_UNSIGNED_SHORT, 0, 2);
+   //glDrawElements(GL_TRIANGLES, g_cube_num_indices, GL_UNSIGNED_SHORT, 0);
 
-   glDrawElementsInstanced(GL_TRIANGLES, num_indices_to_draw, GL_UNSIGNED_SHORT, 0, 2);
+   //glBindVertexArray(g_arrow_vertex_array_object_ID);
+   //glDrawElementsInstanced(GL_TRIANGLES, g_arrow_num_indices, GL_UNSIGNED_SHORT, 0, 1);
 
    //glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
