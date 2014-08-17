@@ -14,7 +14,7 @@ out vec4 vert_out_color;
 void main()
 {
    gl_Position = full_transform_matrix * vert_in_position;
-   
+
    vert_out_color = vert_in_color;
 }
 

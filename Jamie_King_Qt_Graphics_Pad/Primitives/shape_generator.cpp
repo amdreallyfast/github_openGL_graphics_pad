@@ -241,7 +241,8 @@ my_shape_data my_shape_generator::make_3d_arrow()
    GLushort indices[] =
    {
       // rectangle
-      0, 1, 2, 0, 2, 3,    // +Z
+      0, 1, 2, 
+      0, 2, 3,    // +Z
       7, 8, 9, 7, 9, 10,   // -Z
       3, 2, 9, 3, 9, 10,   // +X
       0, 1, 8, 0, 8, 7,    // -X

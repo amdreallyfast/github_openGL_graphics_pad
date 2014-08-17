@@ -86,60 +86,26 @@ void me_GL_window::send_data_to_open_GL()
    g_cube.cleanup();
 
 
-   //// arrow
-   //g_arrow = my_shape_generator::make_3d_arrow();
-   //glGenBuffers(1, &g_arrow_vertex_buffer_ID);
-   //glBindBuffer(GL_ARRAY_BUFFER, g_arrow_vertex_buffer_ID);
-   //glBufferData(GL_ARRAY_BUFFER, g_arrow.vertex_buffer_size(), g_arrow.vertices, GL_STATIC_DRAW);
+   // arrow
+   g_arrow = my_shape_generator::make_3d_arrow();
+   g_arrow_num_indices = g_arrow.num_indices;
+   glGenBuffers(1, &g_arrow_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_arrow_vertex_buffer_ID);
+   GLsizeiptr x = g_arrow.vertex_buffer_size();
+   glBufferData(GL_ARRAY_BUFFER, g_arrow.vertex_buffer_size(), g_arrow.vertices, GL_STATIC_DRAW);
 
-   //glGenBuffers(1, &g_arrow_index_buffer_ID);
-   //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_arrow_index_buffer_ID);
-   //glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_arrow.index_buffer_size(), g_arrow.indices, GL_STATIC_DRAW);
+   glGenBuffers(1, &g_arrow_index_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_arrow_index_buffer_ID);
+   glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_arrow.index_buffer_size(), g_arrow.indices, GL_STATIC_DRAW);
 
-   ////glGenVertexArrays(1, &g_arrow_vertex_array_object_ID);
-   ////glBindVertexArray(g_arrow_vertex_array_object_ID);
-   //glEnableVertexAttribArray(0);
+   //glGenVertexArrays(1, &g_arrow_vertex_array_object_ID);
+   //glBindVertexArray(g_arrow_vertex_array_object_ID);
+   glEnableVertexAttribArray(0);
    //glVertexAttribPointer(0, g_arrow.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, g_arrow.size_bytes_per_position_vertex, 0);
-   //glEnableVertexAttribArray(1);
+   glEnableVertexAttribArray(1);
    //glVertexAttribPointer(1, g_arrow.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, g_arrow.size_bytes_per_color_vertex, (char*)(g_arrow.size_bytes_per_position_vertex));
 
-   //g_arrow.cleanup();
-
-
-
-
-   //// we are going to be sending two transformation 4x4 matrices to the vertex shader, but we don't
-   //// want to send the data until the mouse starts moving
-
-   //// Note: mat4 objects are specified in the vertex attribute object by row, so 
-   //// they are sent in 4 sets of 4 floats.  Unfortunately, they cannot be sent 
-   //// as a whole with a single attribute object (for example, you could not 
-   //// specify the type as "4 * GL_FLOAT").  To send them, you have to send a row
-   //// in its own vertex attribute object, which means that a matrix takes up 4 
-   //// attribute objects.
-   //glGenBuffers(1, &g_transformation_matrix_buffer_ID);
-   //glBindBuffer(GL_ARRAY_BUFFER, g_transformation_matrix_buffer_ID);
-   //glBufferData(GL_ARRAY_BUFFER, sizeof(mat4), 0, GL_DYNAMIC_DRAW);
-   //glEnableVertexAttribArray(2);
-   //glEnableVertexAttribArray(3);
-   //glEnableVertexAttribArray(4);
-   //glEnableVertexAttribArray(5);
-
-   //// stride = size of one entry in the full_transforms buffer
-   //// offset for each row = size of a row * row number 
-   //glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 0));
-   //glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 4));
-   //glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 8));
-   //glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 12));
-
-   //// send down one matrix per draw instance
-   //glVertexAttribDivisor(2, 1);
-   //glVertexAttribDivisor(3, 1);
-   //glVertexAttribDivisor(4, 1);
-   //glVertexAttribDivisor(5, 1);
-
-   // clean up
-   //glBindBuffer(GL_ARRAY_BUFFER, 0);
+   g_arrow.cleanup();
 }
 
 
@@ -186,6 +152,8 @@ void me_GL_window::paintGL()
    
    mat4 full_transform_matrix;
 
+
+   // cube
    glBindBuffer(GL_ARRAY_BUFFER, g_cube_vertex_buffer_ID);
    glVertexAttribPointer(0, g_cube.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, g_cube.size_bytes_per_vertex, 0);
    glVertexAttribPointer(1, g_cube.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, g_cube.size_bytes_per_vertex, (char*)(g_cube.size_bytes_per_position_vertex));
@@ -206,26 +174,25 @@ void me_GL_window::paintGL()
    glDrawElements(GL_TRIANGLES, g_cube_num_indices, GL_UNSIGNED_SHORT, 0);
 
 
+   // arrow
+   glBindBuffer(GL_ARRAY_BUFFER, g_arrow_vertex_buffer_ID);
+   glVertexAttribPointer(0, g_arrow.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, g_arrow.size_bytes_per_vertex, 0);
+   glVertexAttribPointer(1, g_arrow.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, g_arrow.size_bytes_per_vertex, (char*)(g_arrow.size_bytes_per_position_vertex));
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_arrow_index_buffer_ID);
 
-   //shader_handler& shader_thingy = shader_handler::get_instance();
-   //GLint transform_matrix_uniform_location = glGetUniformLocation(shader_thingy.get_shader_program_ID(), "full_transform_matrix");
-   //
-   //glBufferData(GL_ARRAY_BUFFER, sizeof(*full_transforms), &(full_transforms[0]), GL_DYNAMIC_DRAW);
-   //glDrawElementsInstanced(GL_TRIANGLES, g_cube_num_indices, GL_UNSIGNED_SHORT, 0, 1);
-   //glBufferData(GL_ARRAY_BUFFER, sizeof(*full_transforms), &(full_transforms[1]), GL_DYNAMIC_DRAW);
-   //glDrawElementsInstanced(GL_TRIANGLES, g_cube_num_indices, GL_UNSIGNED_SHORT, 0, 1);
-
-
-
-
-
+   mat4 arrow_1_model_to_world_matrix =
+      translate(mat4(), vec3(1.0f, -1.0f, -9.0f)) *
+      rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
+   full_transform_matrix = world_to_projection_matrix * arrow_1_model_to_world_matrix;
+   glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
+   glDrawElements(GL_TRIANGLES, g_arrow_num_indices, GL_UNSIGNED_SHORT, 0);
 
 
    GLenum e = glGetError();
    cout << "GL error: " << e << endl;
 
    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-   glBindVertexArray(0);
+   //glBindVertexArray(0);
 }
 
 bool mouse_is_pressed = false;
