@@ -9,6 +9,8 @@
 // this class is mostly here to abstract away QT's OpenGL window widget
 class me_GL_window : public QGLWidget
 {
+public:
+
 protected:
 	// override the widget's initialization method
 	void initializeGL();
@@ -25,11 +27,12 @@ protected:
    // for keyboard inputs
    void keyPressEvent(QKeyEvent* );
 
-
+private:
    // define this within this class so that it can have access to the width() and height() functions for
    // when it needs to calculate aspect ratio
    void send_data_to_open_GL();
-public:
+
+   void setup_vertex_arrays();
 };
 
 
