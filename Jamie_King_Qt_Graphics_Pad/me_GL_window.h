@@ -31,8 +31,6 @@ private:
    // define this within this class so that it can have access to the width() and height() functions for
    // when it needs to calculate aspect ratio
    void send_data_to_open_GL();
-
-   void setup_vertex_arrays();
 };
 
 

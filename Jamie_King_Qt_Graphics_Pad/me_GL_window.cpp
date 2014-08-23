@@ -46,17 +46,15 @@ bool g_mouse_is_pressed = false;
 // - index buffer: stores indices of position/color combos in the vertex buffer
 // - vertex array object: stores vertex attrib array and pointer attribues, relieving you of the burden of having to re-specify them manually on every draw call if you are drawing from different vertex buffers
 
-my_shape_data g_cube;
-GLuint g_cube_vertex_buffer_ID;
-GLuint g_cube_index_buffer_ID;
+GLuint g_vertex_buffer_ID;
+GLuint g_index_buffer_ID;
+
 GLuint g_cube_vertex_array_object_ID;
 GLuint g_cube_num_indices = 0;
 
-my_shape_data g_arrow;
-GLuint g_arrow_vertex_buffer_ID;
-GLuint g_arrow_index_buffer_ID;
 GLuint g_arrow_vertex_array_object_ID;
 GLuint g_arrow_num_indices = 0;
+GLuint g_arrow_index_byte_offset = 0;
 
 GLuint g_transformation_matrix_buffer_ID;
 GLuint g_transformation_matrix_vertex_array_object_ID;
@@ -74,8 +72,7 @@ void me_GL_window::initializeGL()
    glEnable(GL_DEPTH_TEST);
 
    // initialize the things to be drawn
-   send_data_to_open_GL();    // MUST go first so that the vertex and index buffers are created
-   setup_vertex_arrays();     // NOW we can set the vertex and index array bindings
+   send_data_to_open_GL();
 
    shader_handler& shader_thingy = shader_handler::get_instance();
    ret_val = shader_thingy.install_shaders();
@@ -131,7 +128,7 @@ void me_GL_window::paintGL()
       rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
    full_transform_matrix = world_to_projection_matrix * arrow_1_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
-   glDrawElements(GL_TRIANGLES, g_arrow_num_indices, GL_UNSIGNED_SHORT, 0);
+   glDrawElements(GL_TRIANGLES, g_arrow_num_indices, GL_UNSIGNED_SHORT, reinterpret_cast<void *>(g_arrow_index_byte_offset));
 
 
    GLenum e = glGetError();
@@ -213,62 +210,62 @@ void me_GL_window::keyPressEvent(QKeyEvent* e)
 
 void me_GL_window::send_data_to_open_GL()
 {
-   // cube
-   g_cube = my_shape_generator::make_cube();
-   g_cube_num_indices = g_cube.num_indices;
+   my_shape_data cube = my_shape_generator::make_cube();
+   g_cube_num_indices = cube.num_indices;
 
-   glGenBuffers(1, &g_cube_vertex_buffer_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_cube_vertex_buffer_ID);
-   glBufferData(GL_ARRAY_BUFFER, g_cube.vertex_buffer_size(), g_cube.vertices, GL_STATIC_DRAW);
+   my_shape_data arrow = my_shape_generator::make_3d_arrow();
+   g_arrow_num_indices = arrow.num_indices;
 
-   glGenBuffers(1, &g_cube_index_buffer_ID);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_cube_index_buffer_ID);
-   glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_cube.index_buffer_size(), g_cube.indices, GL_STATIC_DRAW);
+   // create the buffer objects for vertex and index data
+   glGenBuffers(1, &g_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
+   glBufferData(GL_ARRAY_BUFFER, cube.vertex_buffer_size() + arrow.vertex_buffer_size(), 0, GL_STATIC_DRAW);
+   glBufferSubData(GL_ARRAY_BUFFER, 0, cube.vertex_buffer_size(), cube.vertices);
+   glBufferSubData(GL_ARRAY_BUFFER, cube.vertex_buffer_size(), arrow.vertex_buffer_size(), arrow.vertices);
 
-   // take care of any allocated memory
-   g_cube.cleanup();
+   glGenBuffers(1, &g_index_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
+   glBufferData(GL_ELEMENT_ARRAY_BUFFER, cube.index_buffer_size() + arrow.index_buffer_size(), 0, GL_STATIC_DRAW);
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cube.index_buffer_size(), cube.indices);
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, cube.index_buffer_size(), arrow.index_buffer_size(), arrow.indices);
+   g_arrow_index_byte_offset = cube.index_buffer_size();
+   
 
-
-   // arrow
-   g_arrow = my_shape_generator::make_3d_arrow();
-   g_arrow_num_indices = g_arrow.num_indices;
-   glGenBuffers(1, &g_arrow_vertex_buffer_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_arrow_vertex_buffer_ID);
-   glBufferData(GL_ARRAY_BUFFER, g_arrow.vertex_buffer_size(), g_arrow.vertices, GL_STATIC_DRAW);
-
-   glGenBuffers(1, &g_arrow_index_buffer_ID);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_arrow_index_buffer_ID);
-   glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_arrow.index_buffer_size(), g_arrow.indices, GL_STATIC_DRAW);
-
-   g_arrow.cleanup();
-}
-
-
-void me_GL_window::setup_vertex_arrays()
-{
+   // create the vertex array objects
    // Note: OpenGL does not actually create the buffer when it "generates" it.  Only the ID is generated.
    // The buffer is not created (that is, memory is not set aside for it) until the vertex array object ID 
    // is bound for the first time.
    glGenVertexArrays(1, &g_cube_vertex_array_object_ID);
    glGenVertexArrays(1, &g_arrow_vertex_array_object_ID);
-   
+
+   void *buffer_start_offset;
+
    glBindVertexArray(g_cube_vertex_array_object_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_cube_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
-   glVertexAttribPointer(0, g_cube.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, g_cube.size_bytes_per_vertex, 0);
-   glVertexAttribPointer(1, g_cube.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, g_cube.size_bytes_per_vertex, (char*)(g_cube.size_bytes_per_position_vertex));
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_cube_index_buffer_ID);
+   buffer_start_offset = 0;
+   glVertexAttribPointer(0, cube.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, cube.size_bytes_per_vertex, buffer_start_offset);
+   buffer_start_offset = reinterpret_cast<void *>(cube.size_bytes_per_position_vertex);
+   glVertexAttribPointer(1, cube.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, cube.size_bytes_per_vertex, buffer_start_offset);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    glBindVertexArray(g_arrow_vertex_array_object_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_arrow_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
-   glVertexAttribPointer(0, g_arrow.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, g_arrow.size_bytes_per_vertex, 0);
-   glVertexAttribPointer(1, g_arrow.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, g_arrow.size_bytes_per_vertex, (char*)(g_arrow.size_bytes_per_position_vertex));
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_arrow_index_buffer_ID);
+   buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size());
+   glVertexAttribPointer(0, arrow.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, arrow.size_bytes_per_vertex, buffer_start_offset);
+   buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size() + arrow.size_bytes_per_position_vertex);
+   glVertexAttribPointer(1, arrow.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, arrow.size_bytes_per_vertex, buffer_start_offset);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    glBindVertexArray(0);
+
+
+   // take care of any allocated memory
+   cube.cleanup();
+   arrow.cleanup();
 }
 
 
