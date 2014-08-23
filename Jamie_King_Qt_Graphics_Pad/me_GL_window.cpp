@@ -61,6 +61,13 @@ GLuint g_transformation_matrix_vertex_array_object_ID;
 GLint g_transform_matrix_uniform_location;
 
 
+me_GL_window::~me_GL_window()
+{
+   glDeleteBuffers(1, &g_vertex_buffer_ID);
+   glDeleteBuffers(1, &g_index_buffer_ID);
+}
+
+
 void me_GL_window::initializeGL()
 {
    bool ret_val = false;
@@ -124,7 +131,7 @@ void me_GL_window::paintGL()
    // arrow
    glBindVertexArray(g_arrow_vertex_array_object_ID);
    mat4 arrow_1_model_to_world_matrix =
-      translate(mat4(), vec3(1.0f, -1.0f, -9.0f)) *
+      translate(mat4(), vec3(1.0f, -1.0f, -7.0f)) *
       rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
    full_transform_matrix = world_to_projection_matrix * arrow_1_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);

@@ -10,6 +10,8 @@
 class me_GL_window : public QGLWidget
 {
 public:
+   // for cleanup
+   ~me_GL_window();
 
 protected:
 	// override the widget's initialization method
