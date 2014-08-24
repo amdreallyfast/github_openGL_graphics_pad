@@ -8,5 +8,7 @@ public:
    static my_shape_data make_double_triangle();
    static my_shape_data make_cube();
    static my_shape_data make_3d_arrow();
+   static my_shape_data make_plane(unsigned int dimensions = 10);
+private:
 };
 

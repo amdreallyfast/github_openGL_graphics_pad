@@ -44,15 +44,6 @@ my_shape_data my_shape_generator::make_double_triangle()
       vec4(0.0f, 1.0f, 1.0f, 1.0f),          // blue + green
    };
 
-   // record some size data
-   // Note: The type of the vertex array is my_vertex, which means that each index refers to
-   // two sets of vec4 objects as per the definition of my_vertex.
-   double_tri.size_bytes_per_vertex = sizeof(*verts);
-   double_tri.size_bytes_per_position_vertex = sizeof(verts->position);
-   double_tri.size_bytes_per_color_vertex = sizeof(verts->color);
-   double_tri.num_position_entries_per_vertex = sizeof(verts->position) / sizeof(verts->position.x);
-   double_tri.num_color_entries_per_vertex = sizeof(verts->color) / sizeof(verts->color.x);
-
 
    // count the number of vertices (not my custom vertex, which includes color vectors, but total vertices)
    // Note: Instead of manually typing in the type value for the denominator, get the size of the first element in the array.  This is type safe.
@@ -82,6 +73,7 @@ my_shape_data my_shape_generator::make_double_triangle()
    // finally, recturn a copy of the structure, which actually isn't that big (two integers and two pointers)
    return double_tri;
 }
+
 
 my_shape_data my_shape_generator::make_cube()
 {
@@ -149,16 +141,6 @@ my_shape_data my_shape_generator::make_cube()
       vec4(+1.0f, -1.0f, +1.0f, 1.0f),    // position 23
       vec4(+0.9f, +1.0f, +0.2f, 1.0f),    // color
    };
-
-   // record some size data
-   // Note: The type of the vertex array is my_vertex, which means that each index refers to
-   // two sets of vec4 objects as per the definition of my_vertex.
-   cube.size_bytes_per_vertex = sizeof(*verts);
-   cube.size_bytes_per_position_vertex = sizeof(verts->position);
-   cube.size_bytes_per_color_vertex = sizeof(verts->color);
-   cube.num_position_entries_per_vertex = sizeof(verts->position) / sizeof(verts->position.x);
-   cube.num_color_entries_per_vertex = sizeof(verts->color) / sizeof(verts->color.x);
-
 
 
    GLuint array_size_bytes = sizeof(verts);
@@ -257,12 +239,6 @@ my_shape_data my_shape_generator::make_3d_arrow()
       5, 4, 11, 5, 11, 12,    // +Y (slanted face on -X)
    };
 
-   // record some size data
-   arrow.size_bytes_per_vertex = sizeof(*verts);
-   arrow.size_bytes_per_position_vertex = sizeof(verts->position);
-   arrow.size_bytes_per_color_vertex = sizeof(verts->color);
-   arrow.num_position_entries_per_vertex = sizeof(verts->position) / sizeof(verts->position.x);
-   arrow.num_color_entries_per_vertex = sizeof(verts->color) / sizeof(verts->color.x);
 
    GLuint array_size_bytes = sizeof(verts);
    arrow.num_vertices = array_size_bytes / sizeof(*verts);
@@ -276,4 +252,64 @@ my_shape_data my_shape_generator::make_3d_arrow()
 
 
    return arrow;
+}
+
+
+vec4 random_color()
+{
+   vec4 ret;
+   ret.x = rand() / (float)(RAND_MAX);
+   ret.y = rand() / (float)(RAND_MAX);
+   ret.z = rand() / (float)(RAND_MAX);
+   ret.w = 1.0f;
+   return ret;
+}
+
+my_shape_data my_shape_generator::make_plane(unsigned int side_length)
+{
+   my_shape_data plane;
+
+   // make a plane that is centered on the origin
+   plane.num_vertices = side_length * side_length;
+   plane.vertices = new my_vertex[plane.num_vertices];
+   int row_max_count = side_length;
+   float row_half_length = (float)side_length / 2;
+   int col_max_count = side_length;
+   float col_half_length = (float)side_length / 2;
+
+   for (int row_count = 0; row_count < row_max_count; row_count++)
+   {
+      for (int col_count = 0; col_count < col_max_count; col_count++)
+      {
+         // start at upper left (-X, +Y) and work to lower right (+X, -Y)
+         my_vertex& this_vert = plane.vertices[row_count * row_max_count + col_count];
+         this_vert.position.x = col_half_length - col_count;
+         this_vert.position.y = 0;
+         this_vert.position.z = row_count - row_half_length;
+         this_vert.position.w = 1.0;
+         this_vert.color = random_color();
+      }
+   }
+
+   // 6 indices to draw a square (every adjacent set of 4 vertices (including overlap))
+   // Note: 3x3 is 2x2 sets of 4 vertices, 4x4 is 3x3 sets of 4, etc.
+   plane.num_indices = (row_max_count - 1) * (col_max_count - 1) * 6;
+   plane.indices = new GLushort[plane.num_indices];
+   int index_counter = 0;
+   for (int row_count = 0; row_count < (row_max_count - 1); row_count++)
+   {
+      for (int col_count = 0; col_count < (col_max_count - 1); col_count++)
+      {
+         // I worked this out on my notepad by hand.  It's a bit much to explain in a comment.
+         plane.indices[index_counter++] = row_count * row_max_count + col_count;
+         plane.indices[index_counter++] = (row_count + 1) * row_max_count + (col_count + 1);
+         plane.indices[index_counter++] = row_count * row_max_count + (col_count + 1);
+                                          
+         plane.indices[index_counter++] = row_count * row_max_count + col_count;
+         plane.indices[index_counter++] = (row_count + 1) * row_max_count + (col_count + 1);
+         plane.indices[index_counter++] = (row_count + 1) * row_max_count + col_count;
+      }
+   }
+
+   return plane;
 }

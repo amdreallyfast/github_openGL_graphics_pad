@@ -137,11 +137,9 @@ void me_GL_window::paintGL()
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
    glDrawElements(GL_TRIANGLES, g_arrow_num_indices, GL_UNSIGNED_SHORT, reinterpret_cast<void *>(g_arrow_index_byte_offset));
 
+   //GLenum e = glGetError();
+   //cout << "GL error: " << e << endl;
 
-   GLenum e = glGetError();
-   cout << "GL error: " << e << endl;
-
-   //glBindBuffer(GL_ARRAY_BUFFER, 0);
    glBindVertexArray(0);
 }
 
@@ -217,7 +215,7 @@ void me_GL_window::keyPressEvent(QKeyEvent* e)
 
 void me_GL_window::send_data_to_open_GL()
 {
-   my_shape_data cube = my_shape_generator::make_cube();
+   my_shape_data cube = my_shape_generator::make_plane();
    g_cube_num_indices = cube.num_indices;
 
    my_shape_data arrow = my_shape_generator::make_3d_arrow();
@@ -252,9 +250,9 @@ void me_GL_window::send_data_to_open_GL()
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    buffer_start_offset = 0;
-   glVertexAttribPointer(0, cube.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, cube.size_bytes_per_vertex, buffer_start_offset);
-   buffer_start_offset = reinterpret_cast<void *>(cube.size_bytes_per_position_vertex);
-   glVertexAttribPointer(1, cube.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, cube.size_bytes_per_vertex, buffer_start_offset);
+   glVertexAttribPointer(0, my_vertex::NUM_FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::SIZE_BYTES_PER_VERTEX, buffer_start_offset);
+   buffer_start_offset = reinterpret_cast<void *>(my_vertex::SIZE_BYTES_PER_POSITION);
+   glVertexAttribPointer(1, my_vertex::NUM_FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::SIZE_BYTES_PER_VERTEX, buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    glBindVertexArray(g_arrow_vertex_array_object_ID);
@@ -262,9 +260,9 @@ void me_GL_window::send_data_to_open_GL()
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size());
-   glVertexAttribPointer(0, arrow.num_position_entries_per_vertex, GL_FLOAT, GL_FALSE, arrow.size_bytes_per_vertex, buffer_start_offset);
-   buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size() + arrow.size_bytes_per_position_vertex);
-   glVertexAttribPointer(1, arrow.num_color_entries_per_vertex, GL_FLOAT, GL_FALSE, arrow.size_bytes_per_vertex, buffer_start_offset);
+   glVertexAttribPointer(0, my_vertex::NUM_FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::SIZE_BYTES_PER_VERTEX, buffer_start_offset);
+   buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size() + my_vertex::SIZE_BYTES_PER_POSITION);
+   glVertexAttribPointer(1, my_vertex::NUM_FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::SIZE_BYTES_PER_VERTEX, buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    glBindVertexArray(0);
