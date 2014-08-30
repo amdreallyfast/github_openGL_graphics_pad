@@ -105,23 +105,24 @@ void me_GL_window::paintGL()
    float fov_radians = (1.0f / 2.0f) * 3.14159f;
    float aspect_ratio = ((float)this->width()) / ((float)this->height());
    float near_plane_dist = 0.1f;
-   float far_plane_dist = 10.0f;
+   float far_plane_dist = 20.0f;
    mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
    mat4 world_to_projection_matrix = projection_matrix * g_camera.get_world_to_view_matrix();
 
    mat4 full_transform_matrix;
 
    // cube
-   glBindVertexArray(g_cube_vertex_array_object_ID);
-   mat4 cube_1_model_to_world_matrix =
-      translate(mat4(), vec3(1.0f, 0.0f, -9.0f)) *
-      rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f));
-   full_transform_matrix = world_to_projection_matrix * cube_1_model_to_world_matrix;
-   glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
-   glDrawElements(GL_TRIANGLES, g_cube_num_indices, GL_UNSIGNED_SHORT, 0);
+   //glBindVertexArray(g_cube_vertex_array_object_ID);
+   //mat4 cube_1_model_to_world_matrix =
+   //   translate(mat4(), vec3(1.0f, 0.0f, +1.0f)) *
+   //   rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f));
+   //full_transform_matrix = world_to_projection_matrix * cube_1_model_to_world_matrix;
+   //glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
+   //glDrawElements(GL_TRIANGLES, g_cube_num_indices, GL_UNSIGNED_SHORT, 0);
 
+   glBindVertexArray(g_cube_vertex_array_object_ID);
    mat4 cube_2_model_to_world_matrix =
-      translate(mat4(), vec3(0.0f, -1.0f, -3.75f)) *
+      translate(mat4(), vec3(0.0f, -1.0f, +0.0f)) *
       rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f));
    full_transform_matrix = world_to_projection_matrix * cube_2_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
@@ -131,8 +132,8 @@ void me_GL_window::paintGL()
    // arrow
    glBindVertexArray(g_arrow_vertex_array_object_ID);
    mat4 arrow_1_model_to_world_matrix =
-      translate(mat4(), vec3(1.0f, -1.0f, -7.0f)) *
-      rotate(mat4(), (1.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
+      translate(mat4(), vec3(1.0f, -1.0f, -5.0f)) *
+      rotate(mat4(), (0.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
    full_transform_matrix = world_to_projection_matrix * arrow_1_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
    glDrawElements(GL_TRIANGLES, g_arrow_num_indices, GL_UNSIGNED_SHORT, reinterpret_cast<void *>(g_arrow_index_byte_offset));
@@ -142,7 +143,6 @@ void me_GL_window::paintGL()
 
    glBindVertexArray(0);
 }
-
 
 void me_GL_window::mouseMoveEvent(QMouseEvent * e)
 {
