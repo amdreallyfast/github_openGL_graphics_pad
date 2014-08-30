@@ -250,9 +250,9 @@ void me_GL_window::send_data_to_open_GL()
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    buffer_start_offset = 0;
-   glVertexAttribPointer(0, my_vertex::NUM_FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::SIZE_BYTES_PER_VERTEX, buffer_start_offset);
-   buffer_start_offset = reinterpret_cast<void *>(my_vertex::SIZE_BYTES_PER_POSITION);
-   glVertexAttribPointer(1, my_vertex::NUM_FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::SIZE_BYTES_PER_VERTEX, buffer_start_offset);
+   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
+   buffer_start_offset = reinterpret_cast<void *>(my_vertex::BYTES_PER_POSITION);
+   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    glBindVertexArray(g_arrow_vertex_array_object_ID);
@@ -260,9 +260,9 @@ void me_GL_window::send_data_to_open_GL()
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size());
-   glVertexAttribPointer(0, my_vertex::NUM_FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::SIZE_BYTES_PER_VERTEX, buffer_start_offset);
-   buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size() + my_vertex::SIZE_BYTES_PER_POSITION);
-   glVertexAttribPointer(1, my_vertex::NUM_FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::SIZE_BYTES_PER_VERTEX, buffer_start_offset);
+   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
+   buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size() + my_vertex::BYTES_PER_POSITION);
+   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    glBindVertexArray(0);

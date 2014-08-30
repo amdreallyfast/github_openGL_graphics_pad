@@ -28,20 +28,20 @@ my_shape_data my_shape_generator::make_double_triangle()
    my_vertex verts[] =
    {
       // first triangle
-      vec4(-1.0f, -1.0f, RED_TRIANGLE_Z, 1.0f),    // left bottom corner
-      vec4(1.0f, 0.0f, 0.0f, 1.0f),          // all red
-      vec4(+1.0f, -1.0f, RED_TRIANGLE_Z, 1.0f),    // right bottom corner
-      vec4(1.0f, 1.0f, 0.0f, 1.0f),          // red + green (apparently this makes yellow)
-      vec4(+0.0f, +1.0f, -1.0f, 1.0f),    // center top
-      vec4(1.0f, 0.0f, 1.0f, 1.0f),          // red + blue (apparently this makes pink
+      vec3(-1.0f, -1.0f, RED_TRIANGLE_Z), // left bottom corner
+      vec3(1.0f, 0.0f, 0.0f),             // all red
+      vec3(+1.0f, -1.0f, RED_TRIANGLE_Z), // right bottom corner
+      vec3(1.0f, 1.0f, 0.0f),             // red + green (apparently this makes yellow)
+      vec3(+0.0f, +1.0f, -1.0f),          // center top
+      vec3(1.0f, 0.0f, 1.0f),             // red + blue (apparently this makes pink
 
       // second triangle
-      vec4(-1.0f, +1.0f, BLUE_TRIANGLE_Z, 1.0f),   // left top corner
-      vec4(0.0f, 0.0f, 1.0f, 0.1f),          // all blue
-      vec4(+1.0f, +1.0f, BLUE_TRIANGLE_Z, 1.0f),   // right top corner
-      vec4(1.0f, 0.0f, 1.0f, 0.5f),          // blue + red
-      vec4(+0.0f, -1.0f, BLUE_TRIANGLE_Z, 1.0f),   // center bottom
-      vec4(0.0f, 1.0f, 1.0f, 1.0f),          // blue + green
+      vec3(-1.0f, +1.0f, BLUE_TRIANGLE_Z),   // left top corner
+      vec3(0.0f, 0.0f, 1.0f),                // all blue
+      vec3(+1.0f, +1.0f, BLUE_TRIANGLE_Z),   // right top corner
+      vec3(1.0f, 0.0f, 1.0f),                // blue + red
+      vec3(+0.0f, -1.0f, BLUE_TRIANGLE_Z),   // center bottom
+      vec3(0.0f, 1.0f, 1.0f),                // blue + green
    };
 
 
@@ -82,64 +82,64 @@ my_shape_data my_shape_generator::make_cube()
    my_vertex verts[] =
    {
       // face 1
-      vec4(-1.0f, +1.0f, +1.0f, 1.0f),    // position 0
-      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
-      vec4(+1.0f, +1.0f, +1.0f, 1.0f),    // position 1
-      vec4(+0.0f, +1.0f, +0.0f, 1.0f),    // color
-      vec4(+1.0f, +1.0f, -1.0f, 1.0f),    // position 2
-      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
-      vec4(-1.0f, +1.0f, -1.0f, 1.0f),    // position 3
-      vec4(+1.0f, +1.0f, +1.0f, 1.0f),    // color
+      vec3(-1.0f, +1.0f, +1.0f),    // position 0
+      vec3(+1.0f, +0.0f, +0.0f),    // color
+      vec3(+1.0f, +1.0f, +1.0f),    // position 1
+      vec3(+0.0f, +1.0f, +0.0f),    // color
+      vec3(+1.0f, +1.0f, -1.0f),    // position 2
+      vec3(+0.0f, +0.0f, +1.0f),    // color
+      vec3(-1.0f, +1.0f, -1.0f),    // position 3
+      vec3(+1.0f, +1.0f, +1.0f),    // color
 
       // face 2
-      vec4(-1.0f, +1.0f, -1.0f, 1.0f),    // position 4
-      vec4(+1.0f, +0.0f, +1.0f, 1.0f),    // color
-      vec4(+1.0f, +1.0f, -1.0f, 1.0f),    // position 5
-      vec4(+0.0f, +0.5f, +0.2f, 1.0f),    // color
-      vec4(+1.0f, -1.0f, -1.0f, 1.0f),    // position 6
-      vec4(+0.8f, +0.6f, +0.4f, 1.0f),    // color
-      vec4(-1.0f, -1.0f, -1.0f, 1.0f),    // position 7
-      vec4(+0.3f, +1.0f, +0.5f, 1.0f),    // color
+      vec3(-1.0f, +1.0f, -1.0f),    // position 4
+      vec3(+1.0f, +0.0f, +1.0f),    // color
+      vec3(+1.0f, +1.0f, -1.0f),    // position 5
+      vec3(+0.0f, +0.5f, +0.2f),    // color
+      vec3(+1.0f, -1.0f, -1.0f),    // position 6
+      vec3(+0.8f, +0.6f, +0.4f),    // color
+      vec3(-1.0f, -1.0f, -1.0f),    // position 7
+      vec3(+0.3f, +1.0f, +0.5f),    // color
 
       // face 3
-      vec4(+1.0f, +1.0f, -1.0f, 1.0f),    // position 8
-      vec4(+0.2f, +0.5f, +0.2f, 1.0f),    // color
-      vec4(+1.0f, +1.0f, +1.0f, 1.0f),    // position 9
-      vec4(+0.9f, +0.3f, +0.7f, 1.0f),    // color
-      vec4(+1.0f, -1.0f, +1.0f, 1.0f),    // position 10
-      vec4(+0.3f, +0.7f, +0.5f, 1.0f),    // color
-      vec4(+1.0f, -1.0f, -1.0f, 1.0f),    // position 11
-      vec4(+0.5f, +0.7f, +0.5f, 1.0f),    // color
+      vec3(+1.0f, +1.0f, -1.0f),    // position 8
+      vec3(+0.2f, +0.5f, +0.2f),    // color
+      vec3(+1.0f, +1.0f, +1.0f),    // position 9
+      vec3(+0.9f, +0.3f, +0.7f),    // color
+      vec3(+1.0f, -1.0f, +1.0f),    // position 10
+      vec3(+0.3f, +0.7f, +0.5f),    // color
+      vec3(+1.0f, -1.0f, -1.0f),    // position 11
+      vec3(+0.5f, +0.7f, +0.5f),    // color
 
       // face 4
-      vec4(-1.0f, +1.0f, +1.0f, 1.0f),    // position 12
-      vec4(+0.7f, +0.8f, +0.2f, 1.0f),    // color
-      vec4(-1.0f, +1.0f, -1.0f, 1.0f),    // position 13
-      vec4(+0.5f, +0.7f, +0.3f, 1.0f),    // color
-      vec4(-1.0f, -1.0f, -1.0f, 1.0f),    // position 14
-      vec4(+0.4f, +0.7f, +0.7f, 1.0f),    // color
-      vec4(-1.0f, -1.0f, +1.0f, 1.0f),    // position 15
-      vec4(+0.2f, +0.5f, +1.0f, 1.0f),    // color
+      vec3(-1.0f, +1.0f, +1.0f),    // position 12
+      vec3(+0.7f, +0.8f, +0.2f),    // color
+      vec3(-1.0f, +1.0f, -1.0f),    // position 13
+      vec3(+0.5f, +0.7f, +0.3f),    // color
+      vec3(-1.0f, -1.0f, -1.0f),    // position 14
+      vec3(+0.4f, +0.7f, +0.7f),    // color
+      vec3(-1.0f, -1.0f, +1.0f),    // position 15
+      vec3(+0.2f, +0.5f, +1.0f),    // color
 
       // face 5
-      vec4(+1.0f, +1.0f, +1.0f, 1.0f),    // position 16
-      vec4(+0.6f, +1.0f, +0.7f, 1.0f),    // color
-      vec4(-1.0f, +1.0f, +1.0f, 1.0f),    // position 17
-      vec4(+0.6f, +0.4f, +0.8f, 1.0f),    // color
-      vec4(-1.0f, -1.0f, +1.0f, 1.0f),    // position 18
-      vec4(+0.2f, +0.8f, +0.7f, 1.0f),    // color
-      vec4(+1.0f, -1.0f, +1.0f, 1.0f),    // position 19
-      vec4(+0.2f, +0.7f, +1.0f, 1.0f),    // color
+      vec3(+1.0f, +1.0f, +1.0f),    // position 16
+      vec3(+0.6f, +1.0f, +0.7f),    // color
+      vec3(-1.0f, +1.0f, +1.0f),    // position 17
+      vec3(+0.6f, +0.4f, +0.8f),    // color
+      vec3(-1.0f, -1.0f, +1.0f),    // position 18
+      vec3(+0.2f, +0.8f, +0.7f),    // color
+      vec3(+1.0f, -1.0f, +1.0f),    // position 19
+      vec3(+0.2f, +0.7f, +1.0f),    // color
 
       // face 6
-      vec4(+1.0f, -1.0f, -1.0f, 1.0f),    // position 20
-      vec4(+0.8f, +0.3f, +0.7f, 1.0f),    // color
-      vec4(-1.0f, -1.0f, -1.0f, 1.0f),    // position 21
-      vec4(+0.8f, +0.9f, +0.5f, 1.0f),    // color
-      vec4(-1.0f, -1.0f, +1.0f, 1.0f),    // position 22
-      vec4(+0.5f, +0.8f, +0.5f, 1.0f),    // color
-      vec4(+1.0f, -1.0f, +1.0f, 1.0f),    // position 23
-      vec4(+0.9f, +1.0f, +0.2f, 1.0f),    // color
+      vec3(+1.0f, -1.0f, -1.0f),    // position 20
+      vec3(+0.8f, +0.3f, +0.7f),    // color
+      vec3(-1.0f, -1.0f, -1.0f),    // position 21
+      vec3(+0.8f, +0.9f, +0.5f),    // color
+      vec3(-1.0f, -1.0f, +1.0f),    // position 22
+      vec3(+0.5f, +0.8f, +0.5f),    // color
+      vec3(+1.0f, -1.0f, +1.0f),    // position 23
+      vec3(+0.9f, +1.0f, +0.2f),    // color
    };
 
 
@@ -184,40 +184,40 @@ my_shape_data my_shape_generator::make_3d_arrow()
    my_vertex verts[] =
    {
       // +Z face of rectangle
-      vec4(-0.5f, +1.0f, +0.5f, 1.0f),    // 0
-      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
-      vec4(-0.5f, -2.0f, +0.5f, 1.0f),    // 1
-      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
-      vec4(+0.5f, -2.0f, +0.5f, 1.0f),    // 2
-      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
-      vec4(+0.5f, +1.0f, +0.5f, 1.0f),    // 3
-      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
+      vec3(-0.5f, +1.0f, +0.5f),    // 0
+      vec3(+1.0f, +0.0f, +0.0f),    // color
+      vec3(-0.5f, -2.0f, +0.5f),    // 1
+      vec3(+1.0f, +0.0f, +0.0f),    // color
+      vec3(+0.5f, -2.0f, +0.5f),    // 2
+      vec3(+1.0f, +0.0f, +0.0f),    // color
+      vec3(+0.5f, +1.0f, +0.5f),    // 3
+      vec3(+1.0f, +0.0f, +0.0f),    // color
 
       // +Z face of arrow triangle 
-      vec4(+0.0f, +2.0f, +0.5f, 1.0f),    // 4
-      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
-      vec4(-1.0f, +1.0f, +0.5f, 1.0f),    // 5
-      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
-      vec4(+1.0f, +1.0f, +0.5f, 1.0f),    // 6
-      vec4(+1.0f, +0.0f, +0.0f, 1.0f),    // color
+      vec3(+0.0f, +2.0f, +0.5f),    // 4
+      vec3(+1.0f, +0.0f, +0.0f),    // color
+      vec3(-1.0f, +1.0f, +0.5f),    // 5
+      vec3(+1.0f, +0.0f, +0.0f),    // color
+      vec3(+1.0f, +1.0f, +0.5f),    // 6
+      vec3(+1.0f, +0.0f, +0.0f),    // color
 
       // -Z face of rectangle
-      vec4(-0.5f, +1.0f, -0.5f, 1.0f),    // 7
-      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
-      vec4(-0.5f, -2.0f, -0.5f, 1.0f),    // 8
-      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
-      vec4(+0.5f, -2.0f, -0.5f, 1.0f),    // 9
-      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
-      vec4(+0.5f, +1.0f, -0.5f, 1.0f),    // 10
-      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
+      vec3(-0.5f, +1.0f, -0.5f),    // 7
+      vec3(+0.0f, +0.0f, +1.0f),    // color
+      vec3(-0.5f, -2.0f, -0.5f),    // 8
+      vec3(+0.0f, +0.0f, +1.0f),    // color
+      vec3(+0.5f, -2.0f, -0.5f),    // 9
+      vec3(+0.0f, +0.0f, +1.0f),    // color
+      vec3(+0.5f, +1.0f, -0.5f),    // 10
+      vec3(+0.0f, +0.0f, +1.0f),    // color
 
       // -Z face of arrow triangle
-      vec4(+0.0f, +2.0f, -0.5f, 1.0f),    // 11
-      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
-      vec4(-1.0f, +1.0f, -0.5f, 1.0f),    // 12
-      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
-      vec4(+1.0f, +1.0f, -0.5f, 1.0f),    // 13
-      vec4(+0.0f, +0.0f, +1.0f, 1.0f),    // color
+      vec3(+0.0f, +2.0f, -0.5f),    // 11
+      vec3(+0.0f, +0.0f, +1.0f),    // color
+      vec3(-1.0f, +1.0f, -0.5f),    // 12
+      vec3(+0.0f, +0.0f, +1.0f),    // color
+      vec3(+1.0f, +1.0f, -0.5f),    // 13
+      vec3(+0.0f, +0.0f, +1.0f),    // color
    };
 
    GLushort indices[] =
@@ -255,13 +255,12 @@ my_shape_data my_shape_generator::make_3d_arrow()
 }
 
 
-vec4 random_color()
+vec3 random_color()
 {
-   vec4 ret;
+   vec3 ret;
    ret.x = rand() / (float)(RAND_MAX);
    ret.y = rand() / (float)(RAND_MAX);
    ret.z = rand() / (float)(RAND_MAX);
-   ret.w = 1.0f;
    return ret;
 }
 
@@ -286,7 +285,6 @@ my_shape_data my_shape_generator::make_plane(unsigned int side_length)
          this_vert.position.x = col_half_length - col_count;
          this_vert.position.y = 0;
          this_vert.position.z = row_count - row_half_length;
-         this_vert.position.w = 1.0;
          this_vert.color = random_color();
       }
    }
