@@ -212,10 +212,9 @@ void me_GL_window::keyPressEvent(QKeyEvent* e)
    this->repaint();
 }
 
-
 void me_GL_window::send_data_to_open_GL()
 {
-   my_shape_data cube = my_shape_generator::make_plane();
+   my_shape_data cube = my_shape_generator::Jamie_King_makeTeapot(10, mat4());
    g_cube_num_indices = cube.num_indices;
 
    my_shape_data arrow = my_shape_generator::make_3d_arrow();

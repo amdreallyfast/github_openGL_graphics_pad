@@ -90,6 +90,7 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="me_GL_window.h" />
     <ClInclude Include="Primitives\shape_data.h" />
+    <ClInclude Include="Primitives\TeapotData.h" />
     <ClInclude Include="Primitives\vertex.h" />
     <ClInclude Include="Primitives\shape_generator.h" />
     <ClInclude Include="utilities\shader_handler.h" />

@@ -8,15 +8,24 @@
 
 // for the glm functions (technically included indirectly through "vertex" header)
 #include <glm\glm\glm.hpp>
-
 using glm::vec4;
 
 #include <glm\glm\gtc\matrix_transform.hpp>
 using glm::translate;
 using glm::perspective;
 using glm::mat4;
+using glm::mat3;
 using glm::vec3;
-#include <iostream>
+
+
+vec3 random_color()
+{
+   vec3 ret;
+   ret.x = rand() / (float)(RAND_MAX);
+   ret.y = rand() / (float)(RAND_MAX);
+   ret.z = rand() / (float)(RAND_MAX);
+   return ret;
+}
 
 my_shape_data my_shape_generator::make_double_triangle()
 {
@@ -30,18 +39,28 @@ my_shape_data my_shape_generator::make_double_triangle()
       // first triangle
       vec3(-1.0f, -1.0f, RED_TRIANGLE_Z), // left bottom corner
       vec3(1.0f, 0.0f, 0.0f),             // all red
+      vec3(+0.0f, +0.0f, +1.0f),          // normal points out of screen
+      
       vec3(+1.0f, -1.0f, RED_TRIANGLE_Z), // right bottom corner
       vec3(1.0f, 1.0f, 0.0f),             // red + green (apparently this makes yellow)
+      vec3(+0.0f, +0.0f, +1.0f),          // normal points out of screen
+
       vec3(+0.0f, +1.0f, -1.0f),          // center top
       vec3(1.0f, 0.0f, 1.0f),             // red + blue (apparently this makes pink
+      vec3(+0.0f, +0.0f, +1.0f),          // normal points out of screen
 
       // second triangle
       vec3(-1.0f, +1.0f, BLUE_TRIANGLE_Z),   // left top corner
       vec3(0.0f, 0.0f, 1.0f),                // all blue
+      vec3(+0.0f, +0.0f, +1.0f),          // normal points out of screen
+
       vec3(+1.0f, +1.0f, BLUE_TRIANGLE_Z),   // right top corner
       vec3(1.0f, 0.0f, 1.0f),                // blue + red
+      vec3(+0.0f, +0.0f, +1.0f),          // normal points out of screen
+
       vec3(+0.0f, -1.0f, BLUE_TRIANGLE_Z),   // center bottom
       vec3(0.0f, 1.0f, 1.0f),                // blue + green
+      vec3(+0.0f, +0.0f, +1.0f),          // normal points out of screen
    };
 
 
@@ -58,7 +77,6 @@ my_shape_data my_shape_generator::make_double_triangle()
 
    // vertex index data
    GLushort indices[] = { 0, 1, 2, 3, 4, 5 };
-   //GLushort indices[] = { 0, 1, 2 };
 
    // count the number of indices
    double_tri.num_indices = sizeof(indices) / sizeof(*indices);
@@ -79,67 +97,86 @@ my_shape_data my_shape_generator::make_cube()
 {
    my_shape_data cube;
 
+   // Note: I made my own shape, but later copied Jamie King's my_shape_generator.cpp.
    my_vertex verts[] =
    {
-      // face 1
-      vec3(-1.0f, +1.0f, +1.0f),    // position 0
-      vec3(+1.0f, +0.0f, +0.0f),    // color
-      vec3(+1.0f, +1.0f, +1.0f),    // position 1
-      vec3(+0.0f, +1.0f, +0.0f),    // color
-      vec3(+1.0f, +1.0f, -1.0f),    // position 2
-      vec3(+0.0f, +0.0f, +1.0f),    // color
-      vec3(-1.0f, +1.0f, -1.0f),    // position 3
-      vec3(+1.0f, +1.0f, +1.0f),    // color
+		vec3(-1.0f, +1.0f, +1.0f),  // 0
+		random_color(),
+		vec3(+0.0f, +1.0f, +0.0f),  // Normal
+		vec3(+1.0f, +1.0f, +1.0f),  // 1
+		random_color(),
+		vec3(+0.0f, +1.0f, +0.0f),  // Normal
+		vec3(+1.0f, +1.0f, -1.0f),  // 2
+		random_color(),
+		vec3(+0.0f, +1.0f, +0.0f),  // Normal
+		vec3(-1.0f, +1.0f, -1.0f),  // 3
+		random_color(),
+		vec3(+0.0f, +1.0f, +0.0f),  // Normal
+			
+		vec3(-1.0f, +1.0f, -1.0f),  // 4
+		random_color(),
+		vec3(+0.0f, +0.0f, -1.0f),  // Normal
+		vec3(+1.0f, +1.0f, -1.0f),  // 5
+		random_color(),
+		vec3(+0.0f, +0.0f, -1.0f),  // Normal
+		vec3(+1.0f, -1.0f, -1.0f),  // 6
+		random_color(),
+		vec3(+0.0f, +0.0f, -1.0f),  // Normal
+		vec3(-1.0f, -1.0f, -1.0f),  // 7
+		random_color(),
+		vec3(+0.0f, +0.0f, -1.0f),  // Normal
 
-      // face 2
-      vec3(-1.0f, +1.0f, -1.0f),    // position 4
-      vec3(+1.0f, +0.0f, +1.0f),    // color
-      vec3(+1.0f, +1.0f, -1.0f),    // position 5
-      vec3(+0.0f, +0.5f, +0.2f),    // color
-      vec3(+1.0f, -1.0f, -1.0f),    // position 6
-      vec3(+0.8f, +0.6f, +0.4f),    // color
-      vec3(-1.0f, -1.0f, -1.0f),    // position 7
-      vec3(+0.3f, +1.0f, +0.5f),    // color
+		vec3(+1.0f, +1.0f, -1.0f),  // 8
+		random_color(),
+		vec3(+1.0f, +0.0f, +0.0f),  // Normal
+		vec3(+1.0f, +1.0f, +1.0f),  // 9
+		random_color(),
+		vec3(+1.0f, +0.0f, +0.0f),  // Normal
+		vec3(+1.0f, -1.0f, +1.0f),  // 10
+		random_color(),
+		vec3(+1.0f, +0.0f, +0.0f),  // Normal
+		vec3(+1.0f, -1.0f, -1.0f),  // 11
+		random_color(),
+		vec3(+1.0f, +0.0f, +0.0f),  // Normal
 
-      // face 3
-      vec3(+1.0f, +1.0f, -1.0f),    // position 8
-      vec3(+0.2f, +0.5f, +0.2f),    // color
-      vec3(+1.0f, +1.0f, +1.0f),    // position 9
-      vec3(+0.9f, +0.3f, +0.7f),    // color
-      vec3(+1.0f, -1.0f, +1.0f),    // position 10
-      vec3(+0.3f, +0.7f, +0.5f),    // color
-      vec3(+1.0f, -1.0f, -1.0f),    // position 11
-      vec3(+0.5f, +0.7f, +0.5f),    // color
+		vec3(-1.0f, +1.0f, +1.0f),  // 12
+		random_color(),
+		vec3(-1.0f, +0.0f, +0.0f),  // Normal
+		vec3(-1.0f, +1.0f, -1.0f),  // 13
+		random_color(),
+		vec3(-1.0f, +0.0f, +0.0f),  // Normal
+		vec3(-1.0f, -1.0f, -1.0f),  // 14
+		random_color(),
+		vec3(-1.0f, +0.0f, +0.0f),  // Normal
+		vec3(-1.0f, -1.0f, +1.0f),  // 15
+		random_color(),
+		vec3(-1.0f, +0.0f, +0.0f),  // Normal
 
-      // face 4
-      vec3(-1.0f, +1.0f, +1.0f),    // position 12
-      vec3(+0.7f, +0.8f, +0.2f),    // color
-      vec3(-1.0f, +1.0f, -1.0f),    // position 13
-      vec3(+0.5f, +0.7f, +0.3f),    // color
-      vec3(-1.0f, -1.0f, -1.0f),    // position 14
-      vec3(+0.4f, +0.7f, +0.7f),    // color
-      vec3(-1.0f, -1.0f, +1.0f),    // position 15
-      vec3(+0.2f, +0.5f, +1.0f),    // color
+		vec3(+1.0f, +1.0f, +1.0f),  // 16
+		random_color(),
+		vec3(+0.0f, +0.0f, +1.0f),  // Normal
+		vec3(-1.0f, +1.0f, +1.0f),  // 17
+		random_color(),
+		vec3(+0.0f, +0.0f, +1.0f),  // Normal
+		vec3(-1.0f, -1.0f, +1.0f),  // 18
+		random_color(),
+		vec3(+0.0f, +0.0f, +1.0f),  // Normal
+		vec3(+1.0f, -1.0f, +1.0f),  // 19
+		random_color(),
+		vec3(+0.0f, +0.0f, +1.0f),  // Normal
 
-      // face 5
-      vec3(+1.0f, +1.0f, +1.0f),    // position 16
-      vec3(+0.6f, +1.0f, +0.7f),    // color
-      vec3(-1.0f, +1.0f, +1.0f),    // position 17
-      vec3(+0.6f, +0.4f, +0.8f),    // color
-      vec3(-1.0f, -1.0f, +1.0f),    // position 18
-      vec3(+0.2f, +0.8f, +0.7f),    // color
-      vec3(+1.0f, -1.0f, +1.0f),    // position 19
-      vec3(+0.2f, +0.7f, +1.0f),    // color
-
-      // face 6
-      vec3(+1.0f, -1.0f, -1.0f),    // position 20
-      vec3(+0.8f, +0.3f, +0.7f),    // color
-      vec3(-1.0f, -1.0f, -1.0f),    // position 21
-      vec3(+0.8f, +0.9f, +0.5f),    // color
-      vec3(-1.0f, -1.0f, +1.0f),    // position 22
-      vec3(+0.5f, +0.8f, +0.5f),    // color
-      vec3(+1.0f, -1.0f, +1.0f),    // position 23
-      vec3(+0.9f, +1.0f, +0.2f),    // color
+		vec3(+1.0f, -1.0f, -1.0f),  // 20
+		random_color(),
+		vec3(+0.0f, -1.0f, +0.0f),  // Normal
+		vec3(-1.0f, -1.0f, -1.0f),  // 21
+		random_color(),
+		vec3(+0.0f, -1.0f, +0.0f),  // Normal
+		vec3(-1.0f, -1.0f, +1.0f),  // 22
+		random_color(),
+		vec3(+0.0f, -1.0f, +0.0f),  // Normal
+		vec3(+1.0f, -1.0f, +1.0f),  // 23
+		random_color(),
+		vec3(+0.0f, -1.0f, +0.0f),  // Normal
    };
 
 
@@ -157,12 +194,12 @@ my_shape_data my_shape_generator::make_cube()
    // So this all works out just peachy.
    GLushort indices[] =
    {
-      0, 1, 2, 0, 2, 3,     // top
-      4, 5, 6, 4, 6, 7,     // front
-      8, 9, 10, 8, 10, 11,     // right
-      12, 13, 14, 12, 14, 15,     // left
-      16, 17, 18, 16, 18, 19,     // back
-      20, 22, 21, 20, 23, 22,     // bottom
+      0, 1, 2, 0, 2, 3,       // top
+      4, 5, 6, 4, 6, 7,       // front
+      8, 9, 10, 8, 10, 11,    // right
+      12, 13, 14, 12, 14, 15, // left
+      16, 17, 18, 16, 18, 19, // back
+      20, 22, 21, 20, 23, 22, // bottom
    };
 
    array_size_bytes = sizeof(indices);
@@ -179,64 +216,163 @@ my_shape_data my_shape_generator::make_3d_arrow()
 {
    my_shape_data arrow;
 
-   // only need to record the vertices once and let the indices do the duplication
-   // Note: +Z face is red, -Z face is blue, and the sides will be blended.
+   // Note: I made my own shape, but later copied Jamie King's my_shape_generator.cpp.
    my_vertex verts[] =
    {
-      // +Z face of rectangle
-      vec3(-0.5f, +1.0f, +0.5f),    // 0
-      vec3(+1.0f, +0.0f, +0.0f),    // color
-      vec3(-0.5f, -2.0f, +0.5f),    // 1
-      vec3(+1.0f, +0.0f, +0.0f),    // color
-      vec3(+0.5f, -2.0f, +0.5f),    // 2
-      vec3(+1.0f, +0.0f, +0.0f),    // color
-      vec3(+0.5f, +1.0f, +0.5f),    // 3
-      vec3(+1.0f, +0.0f, +0.0f),    // color
-
-      // +Z face of arrow triangle 
-      vec3(+0.0f, +2.0f, +0.5f),    // 4
-      vec3(+1.0f, +0.0f, +0.0f),    // color
-      vec3(-1.0f, +1.0f, +0.5f),    // 5
-      vec3(+1.0f, +0.0f, +0.0f),    // color
-      vec3(+1.0f, +1.0f, +0.5f),    // 6
-      vec3(+1.0f, +0.0f, +0.0f),    // color
-
-      // -Z face of rectangle
-      vec3(-0.5f, +1.0f, -0.5f),    // 7
-      vec3(+0.0f, +0.0f, +1.0f),    // color
-      vec3(-0.5f, -2.0f, -0.5f),    // 8
-      vec3(+0.0f, +0.0f, +1.0f),    // color
-      vec3(+0.5f, -2.0f, -0.5f),    // 9
-      vec3(+0.0f, +0.0f, +1.0f),    // color
-      vec3(+0.5f, +1.0f, -0.5f),    // 10
-      vec3(+0.0f, +0.0f, +1.0f),    // color
-
-      // -Z face of arrow triangle
-      vec3(+0.0f, +2.0f, -0.5f),    // 11
-      vec3(+0.0f, +0.0f, +1.0f),    // color
-      vec3(-1.0f, +1.0f, -0.5f),    // 12
-      vec3(+0.0f, +0.0f, +1.0f),    // color
-      vec3(+1.0f, +1.0f, -0.5f),    // 13
-      vec3(+0.0f, +0.0f, +1.0f),    // color
+		// Top side of arrow head
+		vec3(+0.00f, +0.25f, -0.25f),    // 0
+		vec3(+1.00f, +0.00f, +0.00f),    // Color
+		vec3(+0.00f, +1.00f, +0.00f),    // Normal
+		vec3(+0.50f, +0.25f, -0.25f),    // 1
+		vec3(+1.00f, +0.00f, +0.00f),    // Color
+		vec3(+0.00f, +1.00f, +0.00f),    // Normal
+		vec3(+0.00f, +0.25f, -1.00f),    // 2
+		vec3(+1.00f, +0.00f, +0.00f),    // Color
+		vec3(+0.00f, +1.00f, +0.00f),    // Normal
+		vec3(-0.50f, +0.25f, -0.25f),    // 3
+		vec3(+1.00f, +0.00f, +0.00f),    // Color
+		vec3(+0.00f, +1.00f, +0.00f),    // Normal
+		// Bottom side of arrow head     
+		vec3(+0.00f, -0.25f, -0.25f),    // 4
+		vec3(+0.00f, +0.00f, +1.00f),    // Color
+		vec3(+0.00f, -1.00f, +0.00f),    // Normal
+		vec3(+0.50f, -0.25f, -0.25f),    // 5
+		vec3(+0.00f, +0.00f, +1.00f),    // Color
+		vec3(+0.00f, -1.00f, +0.00f),    // Normal
+		vec3(+0.00f, -0.25f, -1.00f),    // 6
+		vec3(+0.00f, +0.00f, +1.00f),    // Color
+		vec3(+0.00f, -1.00f, +0.00f),    // Normal
+		vec3(-0.50f, -0.25f, -0.25f),    // 7
+		vec3(+0.00f, +0.00f, +1.00f),    // Color
+		vec3(+0.00f, -1.00f, +0.00f),    // Normal
+		// Right side of arrow tip    
+		vec3(+0.50f, +0.25f, -0.25f),    // 8
+		vec3(+0.60f, +1.00f, +0.00f),    // Color
+		vec3(0.83205032f, 0.00f, -0.55470026f), // Normal
+		vec3(+0.00f, +0.25f, -1.00f),    // 9
+		vec3(+0.60f, +1.00f, +0.00f),		// Color
+		vec3(0.83205032f, 0.00f, -0.55470026f), // Normal
+		vec3(+0.00f, -0.25f, -1.00f),    // 10
+		vec3(+0.60f, +1.00f, +0.00f),		// Color
+		vec3(0.83205032f, 0.00f, -0.55470026f), // Normal
+		vec3(+0.50f, -0.25f, -0.25f),    // 11
+		vec3(+0.60f, +1.00f, +0.00f),		// Color
+		vec3(0.83205032f, 0.00f, -0.55470026f), // Normal
+		// Left side of arrow tip
+		vec3(+0.00f, +0.25f, -1.00f),    // 12
+		vec3(+0.00f, +1.00f, +0.00f),		// Color
+		vec3(-0.55708605f, 0.00f, -0.37139067f), // Normal
+		vec3(-0.50f, +0.25f, -0.25f),    // 13
+		vec3(+0.00f, +1.00f, +0.00f),		// Color
+		vec3(-0.55708605f, 0.00f, -0.37139067f), // Normal
+		vec3(+0.00f, -0.25f, -1.00f),    // 14
+		vec3(+0.00f, +1.00f, +0.00f),		// Color
+		vec3(-0.55708605f, 0.00f, -0.37139067f), // Normal
+		vec3(-0.50f, -0.25f, -0.25f),    // 15
+		vec3(+0.00f, +1.00f, +0.00f),		// Color
+		vec3(-0.55708605f, 0.00f, -0.37139067f), // Normal
+		// Back side of arrow tip
+		vec3(-0.50f, +0.25f, -0.25f),    // 16
+		vec3(+0.50f, +0.50f, +0.50f),		// Color
+		vec3(+0.00f, +0.00f, +1.00f),    // Normal
+		vec3(+0.50f, +0.25f, -0.25f),    // 17
+		vec3(+0.50f, +0.50f, +0.50f),		// Color
+		vec3(+0.00f, +0.00f, +1.00f),    // Normal
+		vec3(-0.50f, -0.25f, -0.25f),    // 18
+		vec3(+0.50f, +0.50f, +0.50f),		// Color
+		vec3(+0.00f, +0.00f, +1.00f),    // Normal
+		vec3(+0.50f, -0.25f, -0.25f),    // 19
+		vec3(+0.50f, +0.50f, +0.50f),		// Color
+		vec3(+0.00f, +0.00f, +1.00f),    // Normal
+		// Top side of back of arrow
+		vec3(+0.25f, +0.25f, -0.25f),    // 20
+		vec3(+1.00f, +0.00f, +0.00f),		// Color
+		vec3(+0.00f, +1.00f, +0.00f),    // Normal
+		vec3(+0.25f, +0.25f, +1.00f),    // 21
+		vec3(+1.00f, +0.00f, +0.00f),		// Color
+		vec3(+0.00f, +1.00f, +0.00f),    // Normal
+		vec3(-0.25f, +0.25f, +1.00f),    // 22
+		vec3(+1.00f, +0.00f, +0.00f),		// Color
+		vec3(+0.00f, +1.00f, +0.00f),    // Normal
+		vec3(-0.25f, +0.25f, -0.25f),    // 23
+		vec3(+1.00f, +0.00f, +0.00f),		// Color
+		vec3(+0.00f, +1.00f, +0.00f),    // Normal
+		// Bottom side of back of arrow
+		vec3(+0.25f, -0.25f, -0.25f),    // 24
+		vec3(+0.00f, +0.00f, +1.00f),		// Color
+		vec3(+0.00f, -1.00f, +0.00f),    // Normal
+		vec3(+0.25f, -0.25f, +1.00f),    // 25
+		vec3(+0.00f, +0.00f, +1.00f),		// Color
+		vec3(+0.00f, -1.00f, +0.00f),    // Normal
+		vec3(-0.25f, -0.25f, +1.00f),    // 26
+		vec3(+0.00f, +0.00f, +1.00f),		// Color
+		vec3(+0.00f, -1.00f, +0.00f),    // Normal
+		vec3(-0.25f, -0.25f, -0.25f),    // 27
+		vec3(+0.00f, +0.00f, +1.00f),		// Color
+		vec3(+0.00f, -1.00f, +0.00f),    // Normal
+		// Right side of back of arrow
+		vec3(+0.25f, +0.25f, -0.25f),    // 28
+		vec3(+0.60f, +1.00f, +0.00f),		// Color
+		vec3(+1.00f, +0.00f, +0.00f),    // Normal
+		vec3(+0.25f, -0.25f, -0.25f),    // 29
+		vec3(+0.60f, +1.00f, +0.00f),		// Color
+		vec3(+1.00f, +0.00f, +0.00f),    // Normal
+		vec3(+0.25f, -0.25f, +1.00f),    // 30
+		vec3(+0.60f, +1.00f, +0.00f),		// Color
+		vec3(+1.00f, +0.00f, +0.00f),    // Normal
+		vec3(+0.25f, +0.25f, +1.00f),    // 31
+		vec3(+0.60f, +1.00f, +0.00f),		// Color
+		vec3(+1.00f, +0.00f, +0.00f),    // Normal
+		// Left side of back of arrow
+		vec3(-0.25f, +0.25f, -0.25f),    // 32
+		vec3(+0.00f, +1.00f, +0.00f),		// Color
+		vec3(-1.00f, +0.00f, +0.00f),    // Normal
+		vec3(-0.25f, -0.25f, -0.25f),    // 33
+		vec3(+0.00f, +1.00f, +0.00f),		// Color
+		vec3(-1.00f, +0.00f, +0.00f),    // Normal
+		vec3(-0.25f, -0.25f, +1.00f),    // 34
+		vec3(+0.00f, +1.00f, +0.00f),		// Color
+		vec3(-1.00f, +0.00f, +0.00f),    // Normal
+		vec3(-0.25f, +0.25f, +1.00f),    // 35
+		vec3(+0.00f, +1.00f, +0.00f),		// Color
+		vec3(-1.00f, +0.00f, +0.00f),    // Normal
+		// Back side of back of arrow
+		vec3(-0.25f, +0.25f, +1.00f),    // 36
+		vec3(+0.50f, +0.50f, +0.50f),		// Color
+		vec3(+0.00f, +0.00f, +1.00f),    // Normal
+		vec3(+0.25f, +0.25f, +1.00f),    // 37
+		vec3(+0.50f, +0.50f, +0.50f),		// Color
+		vec3(+0.00f, +0.00f, +1.00f),    // Normal
+		vec3(-0.25f, -0.25f, +1.00f),    // 38
+		vec3(+0.50f, +0.50f, +0.50f),		// Color
+		vec3(+0.00f, +0.00f, +1.00f),    // Normal
+		vec3(+0.25f, -0.25f, +1.00f),    // 39
+		vec3(+0.50f, +0.50f, +0.50f),		// Color
+		vec3(+0.00f, +0.00f, +1.00f),    // Normal   
    };
 
    GLushort indices[] =
    {
-      // rectangle
-      0, 1, 2, 
-      0, 2, 3,    // +Z
-      7, 8, 9, 7, 9, 10,   // -Z
-      3, 2, 9, 3, 9, 10,   // +X
-      0, 1, 8, 0, 8, 7,    // -X
-      1, 2, 9, 1, 9, 8,    // -Y (base)
-
-      // triangle
-      4, 5, 0, 4, 0, 3, 4, 3, 6,          // +Z
-      11, 12, 7, 11, 7, 10, 11, 10, 13,   // -Z
-      3, 6, 13, 3, 13, 10,    // -Y (overhang on +X)
-      5, 0, 7, 5, 7, 12,      // -Y (overhang on -X)
-      4, 6, 13, 4, 13, 11,    // +Y (slanted face on +X)
-      5, 4, 11, 5, 11, 12,    // +Y (slanted face on -X)
+		0, 1, 2, // Top
+		0, 2, 3,
+		4, 6, 5, // Bottom
+		4, 7, 6,
+		8, 10, 9, // Right side of arrow tip
+		8, 11, 10,
+		12, 15, 13, // Left side of arrow tip
+		12, 14, 15,
+		16, 19, 17, // Back side of arrow tip
+		16, 18, 19,
+		20, 22, 21, // Top side of back of arrow
+		20, 23, 22,
+		24, 25, 26, // Bottom side of back of arrow
+		24, 26, 27,
+		28, 30, 29, // Right side of back of arrow
+		28, 31, 30,
+		32, 33, 34, // Left side of back of arrow
+		32, 34, 35,
+		36, 39, 37, // Back side of back of arrow
+		36, 38, 39,
    };
 
 
@@ -254,15 +390,6 @@ my_shape_data my_shape_generator::make_3d_arrow()
    return arrow;
 }
 
-
-vec3 random_color()
-{
-   vec3 ret;
-   ret.x = rand() / (float)(RAND_MAX);
-   ret.y = rand() / (float)(RAND_MAX);
-   ret.z = rand() / (float)(RAND_MAX);
-   return ret;
-}
 
 my_shape_data my_shape_generator::make_plane(unsigned int side_length)
 {
@@ -286,6 +413,7 @@ my_shape_data my_shape_generator::make_plane(unsigned int side_length)
          this_vert.position.y = 0;
          this_vert.position.z = row_count - row_half_length;
          this_vert.color = random_color();
+         this_vert.normal = vec3(+0.0f, +1.0f, +0.0f);
       }
    }
 
@@ -311,3 +439,324 @@ my_shape_data my_shape_generator::make_plane(unsigned int side_length)
 
    return plane;
 }
+
+
+my_shape_data my_shape_generator::Jamie_King_makeSphere(unsigned int tesselation)
+{
+	//my_shape_data ret = makePlaneVerts(tesselation);
+	//my_shape_data ret2 = makePlaneIndices(tesselation);
+	//ret.indices = ret2.indices;
+	//ret.num_indices = ret2.num_indices;
+	//
+	//unsigned int dimensions = tesselation;
+	//const float RADIUS = 1.0f;
+	//const double CIRCLE = PI * 2;
+	//const double SLICE_ANGLE = CIRCLE / (dimensions - 1); 
+	//for(size_t col = 0; col < dimensions; col++)
+	//{
+	//	double phi = -SLICE_ANGLE * col;
+	//	for(size_t row = 0; row < dimensions; row++)
+	//	{ 
+	//		double theta = -(SLICE_ANGLE / 2.0) * row;
+	//		size_t vertIndex = col * dimensions + row;
+	//		my_vertex& v = ret.vertices[vertIndex];
+	//		v.position.x = RADIUS * cos(phi) * sin(theta);
+	//		v.position.y = RADIUS * sin(phi) * sin(theta);
+	//		v.position.z = RADIUS * cos(theta);
+	//		v.normal = glm::normalize(v.position);
+	//	}
+	//}
+
+   my_shape_data sphere;
+
+   // longitude line count == latitude line count, plus one point for the poles
+   sphere.num_vertices = (tesselation * tesselation) + 2;
+   sphere.vertices = new my_vertex[sphere.num_vertices];
+   
+   // 6 indices for every quad, plus 3 for every point adjacent to the poles
+   sphere.num_indices = (tesselation - 1) * (tesselation - 1) * 6 + (tesselation * 3);
+   sphere.indices = new GLushort[sphere.num_indices];
+
+	return sphere;
+}
+
+my_shape_data my_shape_generator::Jamie_King_makeTorus(unsigned int tesselation)
+{
+	my_shape_data ret;
+	//unsigned int dimensions = tesselation * tesselation; 
+	//ret.num_vertices = dimensions;
+	//ret.vertices = new my_vertex[ret.num_vertices];
+	//float sliceAngle = 360 / tesselation;
+	//const float torusRadius = 1.0f;
+	//const float pipeRadius = 0.5f;
+	//for(unsigned int round1 = 0; round1 < tesselation; round1++)
+	//{
+	//	// Generate a circle on the xy plane, then
+	//	// translate then rotate it into position
+	//	glm::mat4 transform = 
+	//		glm::rotate(glm::mat4(), round1 * sliceAngle, glm::vec3(0.0f, 1.0f, 0.0f)) *
+	//		glm::translate(glm::mat4(), glm::vec3(torusRadius, 0.0f, 0.0f));
+	//	glm::mat3 normalTransform = (glm::mat3)transform;
+	//	for(unsigned int round2 = 0; round2 < tesselation; round2++)
+	//	{
+	//		my_vertex& v = ret.vertices[round1 * tesselation + round2];
+	//		glm::vec4 glmVert(
+	//			pipeRadius * cos(glm::radians(sliceAngle * round2)), 
+	//			pipeRadius * sin(glm::radians(sliceAngle * round2)), 
+	//			0,
+	//			1.0f);
+	//		glm::vec4 glmVertPrime = transform * glmVert;
+	//		v.position = (glm::vec3)glmVertPrime;
+	//		v.normal = glm::normalize(normalTransform * (glm::vec3)glmVert);
+	//		v.color = random_color();
+	//	}
+	//}
+
+	//my_shape_data ret2 = makePlaneUnseamedIndices(tesselation);
+	//ret.num_indices = ret2.num_indices;
+	//ret.indices = ret2.indices;
+	return ret;
+}
+
+my_shape_data my_shape_generator::Jamie_King_makeTeapot(unsigned int tesselation, const glm::mat4& lidTransform)
+{
+	my_shape_data ret;
+
+	ret.num_vertices = 32 * (tesselation + 1) * (tesselation + 1);
+	unsigned int faces = tesselation * tesselation * 32;
+	float* vertices = new float[ret.num_vertices * 3];
+	float* normals = new float[ret.num_vertices * 3];
+	float* textureCoordinates = new float[ret.num_vertices * 2 ];
+	ret.num_indices = faces * 6;
+	ret.indices = new unsigned short[ret.num_indices];
+
+	generatePatches( vertices, normals, textureCoordinates, ret.indices, tesselation );
+	moveLid(tesselation, vertices, lidTransform);
+
+	// Adapt/convert their data format to mine
+	ret.vertices = new my_vertex[ret.num_vertices];
+	for(unsigned int i = 0; i < ret.num_vertices; i++)
+	{
+		my_vertex& v = ret.vertices[i];
+		v.position.x = vertices[i * 3 + 0];
+		v.position.y = vertices[i * 3 + 1];
+		v.position.z = vertices[i * 3 + 2];
+		v.normal.x = normals[i * 3 + 0];
+		v.normal.y = normals[i * 3 + 1];
+		v.normal.z = normals[i * 3 + 2];
+		v.color = random_color();
+	}
+	return ret;
+}
+
+void my_shape_generator::generatePatches(float * v, float * n, float * tc, unsigned short* el, int grid) {
+	float * B = new float[4*(grid+1)];  // Pre-computed Bernstein basis functions
+	float * dB = new float[4*(grid+1)]; // Pre-computed derivitives of basis functions
+
+	int idx = 0, elIndex = 0, tcIndex = 0;
+
+	// Pre-compute the basis functions  (Bernstein polynomials)
+	// and their derivatives
+	computeBasisFunctions(B, dB, grid);
+
+	// Build each patch
+	// The rim
+	buildPatchReflect(0, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true);
+	// The body
+	buildPatchReflect(1, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true);
+	buildPatchReflect(2, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true);
+	// The lid
+	buildPatchReflect(3, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true);
+	buildPatchReflect(4, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true);
+	// The bottom
+	buildPatchReflect(5, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true);
+	// The handle
+	buildPatchReflect(6, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true);
+	buildPatchReflect(7, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true);
+	// The spout
+	buildPatchReflect(8, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true);
+	buildPatchReflect(9, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true);
+
+	delete [] B;
+	delete [] dB;
+}
+
+void my_shape_generator::moveLid(int grid, float *v, mat4 lidTransform) {
+
+	int start = 3 * 12 * (grid+1) * (grid+1);
+	int end = 3 * 20 * (grid+1) * (grid+1);
+
+	for( int i = start; i < end; i+=3 )
+	{
+		glm::vec4 vert = glm::vec4(v[i], v[i+1], v[i+2], 1.0f );
+		vert = lidTransform * vert;
+		v[i] = vert.x;
+		v[i+1] = vert.y;
+		v[i+2] = vert.z;
+	}
+}
+
+void my_shape_generator::buildPatchReflect(int patchNum,
+									   float *B, float *dB,
+									   float *v, float *n,
+									   float *tc, unsigned short *el,
+									   int &index, int &elIndex, int &tcIndex, int grid,
+									   bool reflectX, bool reflectY)
+{
+	glm::vec3 patch[4][4];
+	glm::vec3 patchRevV[4][4];
+	getPatch(patchNum, patch, false);
+	getPatch(patchNum, patchRevV, true);
+
+	// Patch without modification
+	buildPatch(patch, B, dB, v, n, tc, el,
+		index, elIndex, tcIndex, grid, mat3(1.0f), true);
+
+	// Patch reflected in x
+	if( reflectX ) {
+		buildPatch(patchRevV, B, dB, v, n, tc, el,
+			index, elIndex, tcIndex, grid, glm::mat3(glm::vec3(-1.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f),
+			glm::vec3(0.0f, 0.0f, 1.0f) ), false );
+	}
+
+	// Patch reflected in y
+	if( reflectY ) {
+		buildPatch(patchRevV, B, dB, v, n, tc, el,
+			index, elIndex, tcIndex, grid, glm::mat3(glm::vec3(1.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, -1.0f, 0.0f),
+			glm::vec3(0.0f, 0.0f, 1.0f) ), false );
+	}
+
+	// Patch reflected in x and y
+	if( reflectX && reflectY ) {
+		buildPatch(patch, B, dB, v, n, tc, el,
+			index, elIndex, tcIndex, grid, glm::mat3(glm::vec3(-1.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, -1.0f, 0.0f),
+			glm::vec3(0.0f, 0.0f, 1.0f) ), true );
+	}
+}
+
+void my_shape_generator::buildPatch(glm::vec3 patch[][4],
+								float *B, float *dB,
+								float *v, float *n, float *tc,
+								unsigned short *el,
+								int &index, int &elIndex, int &tcIndex, int grid, glm::mat3 reflect,
+								bool invertNormal)
+{
+	int startIndex = index / 3;
+	float tcFactor = 1.0f / grid;
+
+	for( int i = 0; i <= grid; i++ )
+	{
+		for( int j = 0 ; j <= grid; j++)
+		{
+			glm::vec3 pt = reflect * evaluate(i,j,B,patch);
+			glm::vec3 norm = reflect * evaluateNormal(i,j,B,dB,patch);
+			if( invertNormal )
+				norm = -norm;
+
+			v[index] = pt.x;
+			v[index+1] = pt.y;
+			v[index+2] = pt.z;
+
+			n[index] = norm.x;
+			n[index+1] = norm.y;
+			n[index+2] = norm.z;
+
+			tc[tcIndex] = i * tcFactor;
+			tc[tcIndex+1] = j * tcFactor;
+
+			index += 3;
+			tcIndex += 2;
+		}
+	}
+
+	for( int i = 0; i < grid; i++ )
+	{
+		int iStart = i * (grid+1) + startIndex;
+		int nextiStart = (i+1) * (grid+1) + startIndex;
+		for( int j = 0; j < grid; j++)
+		{
+			el[elIndex] = iStart + j;
+			el[elIndex+1] = nextiStart + j + 1;
+			el[elIndex+2] = nextiStart + j;
+
+			el[elIndex+3] = iStart + j;
+			el[elIndex+4] = iStart + j + 1;
+			el[elIndex+5] = nextiStart + j + 1;
+
+			elIndex += 6;
+		}
+	}
+}
+
+#include "TeapotData.h"
+
+void my_shape_generator::getPatch( int patchNum, glm::vec3 patch[][4], bool reverseV )
+{
+	for( int u = 0; u < 4; u++) {          // Loop in u direction
+		for( int v = 0; v < 4; v++ ) {     // Loop in v direction
+			if( reverseV ) {
+				patch[u][v] = glm::vec3(
+					Teapot::cpdata[Teapot::patchdata[patchNum][u*4+(3-v)]][0],
+					Teapot::cpdata[Teapot::patchdata[patchNum][u*4+(3-v)]][1],
+					Teapot::cpdata[Teapot::patchdata[patchNum][u*4+(3-v)]][2]
+				);
+			} else {
+				patch[u][v] = glm::vec3(
+					Teapot::cpdata[Teapot::patchdata[patchNum][u*4+v]][0],
+					Teapot::cpdata[Teapot::patchdata[patchNum][u*4+v]][1],
+					Teapot::cpdata[Teapot::patchdata[patchNum][u*4+v]][2]
+				);
+			}
+		}
+	}
+}
+
+void my_shape_generator::computeBasisFunctions( float * B, float * dB, int grid ) {
+	float inc = 1.0f / grid;
+	for( int i = 0; i <= grid; i++ )
+	{
+		float t = i * inc;
+		float tSqr = t * t;
+		float oneMinusT = (1.0f - t);
+		float oneMinusT2 = oneMinusT * oneMinusT;
+
+		B[i*4 + 0] = oneMinusT * oneMinusT2;
+		B[i*4 + 1] = 3.0f * oneMinusT2 * t;
+		B[i*4 + 2] = 3.0f * oneMinusT * tSqr;
+		B[i*4 + 3] = t * tSqr;
+
+		dB[i*4 + 0] = -3.0f * oneMinusT2;
+		dB[i*4 + 1] = -6.0f * t * oneMinusT + 3.0f * oneMinusT2;
+		dB[i*4 + 2] = -3.0f * tSqr + 6.0f * t * oneMinusT;
+		dB[i*4 + 3] = 3.0f * tSqr;
+	}
+}
+
+glm::vec3 my_shape_generator::evaluate( int gridU, int gridV, float *B, glm::vec3 patch[][4] )
+{
+	glm::vec3 p(0.0f,0.0f,0.0f);
+	for( int i = 0; i < 4; i++) {
+		for( int j = 0; j < 4; j++) {
+			p += patch[i][j] * B[gridU*4+i] * B[gridV*4+j];
+		}
+	}
+	return p;
+}
+
+glm::vec3 my_shape_generator::evaluateNormal( int gridU, int gridV, float *B, float *dB, glm::vec3 patch[][4] )
+{
+	glm::vec3 du(0.0f,0.0f,0.0f);
+	glm::vec3 dv(0.0f,0.0f,0.0f);
+
+	for( int i = 0; i < 4; i++) {
+		for( int j = 0; j < 4; j++) {
+			du += patch[i][j] * dB[gridU*4+i] * B[gridV*4+j];
+			dv += patch[i][j] * B[gridU*4+i] * dB[gridV*4+j];
+		}
+	}
+	return glm::normalize( glm::cross( du, dv ) );
+}
+
