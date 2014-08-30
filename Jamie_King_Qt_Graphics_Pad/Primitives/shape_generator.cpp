@@ -443,30 +443,6 @@ my_shape_data my_shape_generator::make_plane(unsigned int side_length)
 
 my_shape_data my_shape_generator::Jamie_King_makeSphere(unsigned int tesselation)
 {
-	//my_shape_data ret = makePlaneVerts(tesselation);
-	//my_shape_data ret2 = makePlaneIndices(tesselation);
-	//ret.indices = ret2.indices;
-	//ret.num_indices = ret2.num_indices;
-	//
-	//unsigned int dimensions = tesselation;
-	//const float RADIUS = 1.0f;
-	//const double CIRCLE = PI * 2;
-	//const double SLICE_ANGLE = CIRCLE / (dimensions - 1); 
-	//for(size_t col = 0; col < dimensions; col++)
-	//{
-	//	double phi = -SLICE_ANGLE * col;
-	//	for(size_t row = 0; row < dimensions; row++)
-	//	{ 
-	//		double theta = -(SLICE_ANGLE / 2.0) * row;
-	//		size_t vertIndex = col * dimensions + row;
-	//		my_vertex& v = ret.vertices[vertIndex];
-	//		v.position.x = RADIUS * cos(phi) * sin(theta);
-	//		v.position.y = RADIUS * sin(phi) * sin(theta);
-	//		v.position.z = RADIUS * cos(theta);
-	//		v.normal = glm::normalize(v.position);
-	//	}
-	//}
-
    my_shape_data sphere;
 
    // longitude line count == latitude line count (somehow this also takes into account the verts at the poles; perhaps there are duplicates at the poles?)
@@ -476,25 +452,25 @@ my_shape_data my_shape_generator::Jamie_King_makeSphere(unsigned int tesselation
    unsigned int latitude_lines = tesselation;   // horizontal lines
    unsigned int longitude_lines = tesselation;  // vertical lines
 
-   const double PI = 3.14159265359;
+   const float PI = 3.14159265359f;
    const float RADIUS = 1.0f;
-   const double CIRCLE_RADIANS = PI * 2;
-   const double SLICE_ANGLE = CIRCLE_RADIANS / (tesselation - 1);
+   const float CIRCLE_RADIANS = PI * 2;
+   const float SLICE_ANGLE = CIRCLE_RADIANS / (tesselation - 1);
 
    // make the verts
    // NOTE: phi is the angle between the horizontal plane and the Y value, and 
    // theta is the angle in the XZ plane.
    for (unsigned int longitude_counter = 0; longitude_counter < longitude_lines; longitude_counter++)
    {
-      double phi = -SLICE_ANGLE * longitude_counter;
+      float phi = -SLICE_ANGLE * longitude_counter;
       for (unsigned int latitude_counter = 0; latitude_counter < latitude_lines; latitude_counter++)
       {
-         double theta = -(SLICE_ANGLE / 2.0) * latitude_counter;
+         float theta = -(SLICE_ANGLE / 2.0f) * latitude_counter;
          size_t vert_index = longitude_counter * tesselation + latitude_counter;
          my_vertex& v = sphere.vertices[vert_index];
-         v.position.x = RADIUS * cos(phi) * sin(theta);
-         v.position.y = RADIUS * sin(phi) * sin(theta);
-         v.position.z = RADIUS * cos(theta);
+         v.position.x = RADIUS * cosf(phi) * sinf(theta);
+         v.position.y = RADIUS * sinf(phi) * sinf(theta);
+         v.position.z = RADIUS * cosf(theta);
          v.color = random_color();
          v.normal = glm::normalize(v.position);
       }
@@ -524,42 +500,71 @@ my_shape_data my_shape_generator::Jamie_King_makeSphere(unsigned int tesselation
 	return sphere;
 }
 
-my_shape_data my_shape_generator::Jamie_King_makeTorus(unsigned int tesselation)
+// This function took a lot of influence from Jamie's torus, but I refactored a lot of it to make it easier to understand.
+my_shape_data my_shape_generator::make_torus(unsigned int tesselation)
 {
-	my_shape_data ret;
-	//unsigned int dimensions = tesselation * tesselation; 
-	//ret.num_vertices = dimensions;
-	//ret.vertices = new my_vertex[ret.num_vertices];
-	//float sliceAngle = 360 / tesselation;
-	//const float torusRadius = 1.0f;
-	//const float pipeRadius = 0.5f;
-	//for(unsigned int round1 = 0; round1 < tesselation; round1++)
-	//{
-	//	// Generate a circle on the xy plane, then
-	//	// translate then rotate it into position
-	//	glm::mat4 transform = 
-	//		glm::rotate(glm::mat4(), round1 * sliceAngle, glm::vec3(0.0f, 1.0f, 0.0f)) *
-	//		glm::translate(glm::mat4(), glm::vec3(torusRadius, 0.0f, 0.0f));
-	//	glm::mat3 normalTransform = (glm::mat3)transform;
-	//	for(unsigned int round2 = 0; round2 < tesselation; round2++)
-	//	{
-	//		my_vertex& v = ret.vertices[round1 * tesselation + round2];
-	//		glm::vec4 glmVert(
-	//			pipeRadius * cos(glm::radians(sliceAngle * round2)), 
-	//			pipeRadius * sin(glm::radians(sliceAngle * round2)), 
-	//			0,
-	//			1.0f);
-	//		glm::vec4 glmVertPrime = transform * glmVert;
-	//		v.position = (glm::vec3)glmVertPrime;
-	//		v.normal = glm::normalize(normalTransform * (glm::vec3)glmVert);
-	//		v.color = random_color();
-	//	}
-	//}
+	my_shape_data torus;
 
-	//my_shape_data ret2 = makePlaneUnseamedIndices(tesselation);
-	//ret.num_indices = ret2.num_indices;
-	//ret.indices = ret2.indices;
-	return ret;
+   torus.num_vertices = tesselation * tesselation;
+   torus.vertices = new my_vertex[torus.num_vertices];
+   
+   int slices_per_pipe = tesselation;
+   int slices_per_circle = tesselation;
+   const float PI = 3.14159265359f;
+   float pipe_slice_angle = (PI * 2.0f) / slices_per_pipe;
+   float circle_slice_angle = (PI * 2.0f) / slices_per_circle;
+   const float torus_radius = 1.0f;
+   const float pipe_radius = 0.5f;
+
+   for (int pipe_slice_counter = 0; pipe_slice_counter < slices_per_pipe; pipe_slice_counter++)
+   {
+      // generate the transform for this circle
+      mat4 transform = 
+         glm::rotate(mat4(), pipe_slice_counter * pipe_slice_angle, vec3(+0.0f, +1.0f, +0.0f)) *
+         glm::translate(mat4(), vec3(torus_radius, +0.0f, +0.0f));
+
+      // generate the circle
+      for (int circle_slice_counter = 0; circle_slice_counter < slices_per_circle; circle_slice_counter++)
+      {
+         my_vertex& v = torus.vertices[pipe_slice_counter * slices_per_circle + circle_slice_counter];
+         vec4 circle_vert(
+            cosf(circle_slice_angle * circle_slice_counter) * pipe_radius,
+            sinf(circle_slice_angle * circle_slice_counter) * pipe_radius,
+            0.0f,
+            1.0f);
+
+         // now transform each vertex
+         v.position = vec3(transform * circle_vert);
+         
+         v.normal = glm::normalize(v.position);
+         v.color = random_color();
+      }
+   }
+
+   torus.num_indices = tesselation * tesselation * 2 * 3; // 2 triangles per square, 3 indices per triangle
+   torus.indices = new unsigned short[torus.num_indices];
+   int index_counter = 0;
+
+   // treat the torus as a plane whose edge rows and columns wrap around on each other to make the calculations easier to understand
+   for (int row_count = 0; row_count < tesselation; row_count++)
+   {
+      for (int col_count = 0; col_count < tesselation; col_count++)
+      {
+         int next_row = (row_count == (tesselation - 1) ? 0 : (row_count + 1));
+         int next_col = (col_count == (tesselation - 1) ? 0 : (col_count + 1));
+
+
+         torus.indices[index_counter++] = row_count * tesselation + col_count;
+         torus.indices[index_counter++] = next_row * tesselation + next_col;
+         torus.indices[index_counter++] = row_count * tesselation + next_col;
+
+         torus.indices[index_counter++] = row_count * tesselation + col_count;
+         torus.indices[index_counter++] = next_row * tesselation + next_col;
+         torus.indices[index_counter++] = next_row * tesselation + col_count;
+      }
+   }
+
+	return torus;
 }
 
 my_shape_data my_shape_generator::Jamie_King_makeTeapot(unsigned int tesselation, const glm::mat4& lidTransform)

@@ -10,7 +10,7 @@ public:
    static my_shape_data make_3d_arrow();
    static my_shape_data make_plane(unsigned int dimensions = 10);
    static my_shape_data Jamie_King_makeSphere(unsigned int tesselation = 20);
-	static my_shape_data Jamie_King_makeTorus(unsigned int tesselation = 20);
+   static my_shape_data make_torus(unsigned int tesselation = 20);
    static my_shape_data Jamie_King_makeTeapot(unsigned int tesselation, const glm::mat4& lidTransform);
 
    private:
