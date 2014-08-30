@@ -469,13 +469,57 @@ my_shape_data my_shape_generator::Jamie_King_makeSphere(unsigned int tesselation
 
    my_shape_data sphere;
 
-   // longitude line count == latitude line count, plus one point for the poles
-   sphere.num_vertices = (tesselation * tesselation) + 2;
+   // longitude line count == latitude line count (somehow this also takes into account the verts at the poles; perhaps there are duplicates at the poles?)
+   sphere.num_vertices = (tesselation * tesselation);
    sphere.vertices = new my_vertex[sphere.num_vertices];
    
-   // 6 indices for every quad, plus 3 for every point adjacent to the poles
-   sphere.num_indices = (tesselation - 1) * (tesselation - 1) * 6 + (tesselation * 3);
+   unsigned int latitude_lines = tesselation;   // horizontal lines
+   unsigned int longitude_lines = tesselation;  // vertical lines
+
+   const double PI = 3.14159265359;
+   const float RADIUS = 1.0f;
+   const double CIRCLE_RADIANS = PI * 2;
+   const double SLICE_ANGLE = CIRCLE_RADIANS / (tesselation - 1);
+
+   // make the verts
+   // NOTE: phi is the angle between the horizontal plane and the Y value, and 
+   // theta is the angle in the XZ plane.
+   for (unsigned int longitude_counter = 0; longitude_counter < longitude_lines; longitude_counter++)
+   {
+      double phi = -SLICE_ANGLE * longitude_counter;
+      for (unsigned int latitude_counter = 0; latitude_counter < latitude_lines; latitude_counter++)
+      {
+         double theta = -(SLICE_ANGLE / 2.0) * latitude_counter;
+         size_t vert_index = longitude_counter * tesselation + latitude_counter;
+         my_vertex& v = sphere.vertices[vert_index];
+         v.position.x = RADIUS * cos(phi) * sin(theta);
+         v.position.y = RADIUS * sin(phi) * sin(theta);
+         v.position.z = RADIUS * cos(theta);
+         v.color = random_color();
+         v.normal = glm::normalize(v.position);
+      }
+   }
+
+   // 6 indices for every quad (somehow this also takes into account the points at the poles)
+   sphere.num_indices = (tesselation - 1) * (tesselation - 1) * 6;
    sphere.indices = new GLushort[sphere.num_indices];
+   int index_counter = 0;
+
+   // piece together the quads of everything but poles like you would with a plane
+   for (unsigned int longitude_counter = 0; longitude_counter < (longitude_lines - 1); longitude_counter++)
+   {
+      for (unsigned int latitude_counter = 0; latitude_counter < (latitude_lines - 1); latitude_counter++)
+      {
+         // I worked this out on my notepad by hand.  It's a bit much to explain in a comment.
+         sphere.indices[index_counter++] = longitude_counter * longitude_lines + latitude_counter;
+         sphere.indices[index_counter++] = (longitude_counter + 1) * longitude_lines + (latitude_counter + 1);
+         sphere.indices[index_counter++] = longitude_counter * longitude_lines + (latitude_counter + 1);
+         
+         sphere.indices[index_counter++] = longitude_counter * longitude_lines + latitude_counter;
+         sphere.indices[index_counter++] = (longitude_counter + 1) * longitude_lines + (latitude_counter + 1);
+         sphere.indices[index_counter++] = (longitude_counter + 1) * longitude_lines + latitude_counter;
+      }
+   }
 
 	return sphere;
 }

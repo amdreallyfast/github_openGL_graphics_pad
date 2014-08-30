@@ -217,7 +217,7 @@ void me_GL_window::send_data_to_open_GL()
    my_shape_data cube = my_shape_generator::Jamie_King_makeTeapot(10, mat4());
    g_cube_num_indices = cube.num_indices;
 
-   my_shape_data arrow = my_shape_generator::make_3d_arrow();
+   my_shape_data arrow = my_shape_generator::Jamie_King_makeSphere();
    g_arrow_num_indices = arrow.num_indices;
 
    // create the buffer objects for vertex and index data
