@@ -118,7 +118,7 @@ void me_GL_window::paintGL()
       ambient_light.g,
       ambient_light.b);
 
-   vec3 light_position(0.0f, +0.3f, +10.0f);
+   vec3 light_position(0.0f, +0.3f, +0.0f);
    glUniform3f(g_diffuse_light_uniform_location,
       light_position.x,
       light_position.y,
@@ -250,7 +250,7 @@ void me_GL_window::send_data_to_open_GL()
    my_shape_data torus = my_shape_generator::make_torus(50);
    g_torus_num_indices = torus.num_indices;
 
-   my_shape_data plane = my_shape_generator::make_plane(30);
+   my_shape_data plane = my_shape_generator::make_plane();
    g_plane_num_indices = plane.num_indices;
 
    int buffer_start_offset = 0;

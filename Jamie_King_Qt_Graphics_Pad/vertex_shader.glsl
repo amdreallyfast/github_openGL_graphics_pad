@@ -23,6 +23,18 @@ void main()
 
    //vert_out_color = vertex_color * ambient_light;
    float brightness = dot(light_vector, vertex_normal);
-   vert_out_color = vec3(brightness, brightness, brightness);
+   if (brightness < 0)
+   {
+      vert_out_color = vec3(1.0f, 0.0f, 0.0f);
+   }
+   else if (brightness == 0)
+   {
+      vert_out_color = vec3(0.0f, 1.0f, 0.0f);
+   }
+   else
+   {
+      vert_out_color = vec3(0.0f, 0.0f, 1.0f);
+   }
+   //vert_out_color = vec3(brightness, brightness, brightness);
 }
 

@@ -409,16 +409,16 @@ my_shape_data my_shape_generator::make_plane(unsigned int side_length)
       {
          // start at upper left (-X, +Y) and work to lower right (+X, -Y)
          my_vertex& this_vert = plane.vertices[row_count * row_max_count + col_count];
-         this_vert.position.x = col_half_length - col_count;
+         this_vert.position.x = col_count - col_half_length;
          this_vert.position.y = 0;
-         this_vert.position.z = row_count - row_half_length;
+         this_vert.position.z = row_half_length - row_count;
          this_vert.color = random_color();
          this_vert.normal = vec3(+0.0f, +1.0f, +0.0f);
       }
    }
 
    // 6 indices to draw a square (every adjacent set of 4 vertices (including overlap))
-   // Note: 3x3 is 2x2 sets of 4 vertices, 4x4 is 3x3 sets of 4, etc.
+   // Note: 3x3 is a 2x2 set of 4 vertices, 4x4 is a 3x3 set of 4, etc.
    plane.num_indices = (row_max_count - 1) * (col_max_count - 1) * 6;
    plane.indices = new GLushort[plane.num_indices];
    int index_counter = 0;
