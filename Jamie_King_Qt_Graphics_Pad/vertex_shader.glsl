@@ -19,9 +19,10 @@ void main()
 {
    gl_Position = full_transform_matrix * vec4(vertex_position, 1.0f);
 
-   //vec3 light_vector = normalize(light_position - vertex_position);
+   vec3 light_vector = normalize(light_position - vertex_position);
 
-   vert_out_color = vertex_color * ambient_light;
-   //vert_out_color = vert_in_color * dot(light_vector, vertex_normal)
+   //vert_out_color = vertex_color * ambient_light;
+   float brightness = dot(light_vector, vertex_normal);
+   vert_out_color = vec3(brightness, brightness, brightness);
 }
 
