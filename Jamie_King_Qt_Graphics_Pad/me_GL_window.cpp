@@ -51,10 +51,15 @@ GLuint g_index_buffer_ID;
 
 GLuint g_teapot_vertex_array_object_ID;
 GLuint g_teapot_num_indices = 0;
+GLuint g_teapot_index_byte_offset = 0;
 
 GLuint g_torus_vertex_array_object_ID;
 GLuint g_torus_num_indices = 0;
 GLuint g_torus_index_byte_offset = 0;
+
+GLuint g_plane_vertex_array_object_ID;
+GLuint g_plane_num_indices = 0;
+GLuint g_plane_index_byte_offset = 0;
 
 GLuint g_transformation_matrix_buffer_ID;
 GLuint g_transformation_matrix_vertex_array_object_ID;
@@ -112,34 +117,36 @@ void me_GL_window::paintGL()
 
    mat4 full_transform_matrix;
 
-   // teapot
-   //glBindVertexArray(g_teapot_vertex_array_object_ID);
-   //mat4 teapot_1_model_to_world_matrix =
-   //   translate(mat4(), vec3(1.0f, 0.0f, +1.0f)) *
-   //   rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f));
-   //full_transform_matrix = world_to_projection_matrix * teapot_1_model_to_world_matrix;
-   //glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
-   //glDrawElements(GL_TRIANGLES, g_teapot_num_indices, GL_UNSIGNED_SHORT, 0);
+   // plane 
+   // Note: No transformation for the plane, but it does require the matrix to be specified so that it 
+   // doesn't have another object's transformation applied to itself.
+   glBindVertexArray(g_plane_vertex_array_object_ID);
+   mat4 plane_model_to_world_matrix =
+      translate(mat4(), vec3(0.0f, 0.0f, 0.0f));
+   full_transform_matrix = world_to_projection_matrix * plane_model_to_world_matrix;
+   glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
+   glDrawElements(GL_TRIANGLES, g_plane_num_indices, GL_UNSIGNED_SHORT, (void *)(g_plane_index_byte_offset));
 
+   // teapot
+   // Note: Rotate the teapot so that it is right-side-up (the mathematically generated model assumes +Z as postive vertical)
    glBindVertexArray(g_teapot_vertex_array_object_ID);
    mat4 teapot_2_model_to_world_matrix =
-      translate(mat4(), vec3(0.0f, -1.0f, +0.0f)) *
+      translate(mat4(), vec3(+2.0f, +1.0f, +1.0f)) *
       rotate(mat4(), -(3.14159f / 2.0f), vec3(1.0f, 0.0f, 0.0f)) * 
       rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f));
    full_transform_matrix = world_to_projection_matrix * teapot_2_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
    glDrawElements(GL_TRIANGLES, g_teapot_num_indices, GL_UNSIGNED_SHORT, 0);
 
-
    // torus
    glBindVertexArray(g_torus_vertex_array_object_ID);
    mat4 torus_1_model_to_world_matrix =
       //translate(mat4(), vec3(1.0f, -1.0f, -5.0f)) *
-      translate(mat4(), vec3(-2.0f, +2.0f, +2.0f)) *
+      translate(mat4(), vec3(-3.0f, +1.0f, +3.0f)) *
       rotate(mat4(), (0.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
    full_transform_matrix = world_to_projection_matrix * torus_1_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
-   glDrawElements(GL_TRIANGLES, g_torus_num_indices, GL_UNSIGNED_SHORT, reinterpret_cast<void *>(g_torus_index_byte_offset));
+   glDrawElements(GL_TRIANGLES, g_torus_num_indices, GL_UNSIGNED_SHORT, (void *)(g_torus_index_byte_offset));
 
    //GLenum e = glGetError();
    //cout << "GL error: " << e << endl;
@@ -223,19 +230,44 @@ void me_GL_window::send_data_to_open_GL()
    my_shape_data torus = my_shape_generator::make_torus(50);
    g_torus_num_indices = torus.num_indices;
 
+   my_shape_data plane = my_shape_generator::make_plane(30);
+   g_plane_num_indices = plane.num_indices;
+
+   int buffer_start_offset = 0;
+
    // create the buffer objects for vertex and index data
    glGenBuffers(1, &g_vertex_buffer_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
-   glBufferData(GL_ARRAY_BUFFER, teapot.vertex_buffer_size() + torus.vertex_buffer_size(), 0, GL_STATIC_DRAW);
-   glBufferSubData(GL_ARRAY_BUFFER, 0, teapot.vertex_buffer_size(), teapot.vertices);
-   glBufferSubData(GL_ARRAY_BUFFER, teapot.vertex_buffer_size(), torus.vertex_buffer_size(), torus.vertices);
-
    glGenBuffers(1, &g_index_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
-   glBufferData(GL_ELEMENT_ARRAY_BUFFER, teapot.index_buffer_size() + torus.index_buffer_size(), 0, GL_STATIC_DRAW);
-   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, teapot.index_buffer_size(), teapot.indices);
-   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, teapot.index_buffer_size(), torus.index_buffer_size(), torus.indices);
+   glBufferData(GL_ARRAY_BUFFER,
+      teapot.vertex_buffer_size() + 
+      torus.vertex_buffer_size() + 
+      plane.vertex_buffer_size(), 
+      0, GL_STATIC_DRAW);
+   glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
+      teapot.index_buffer_size() + 
+      torus.index_buffer_size() + 
+      plane.index_buffer_size(), 
+      0, GL_STATIC_DRAW);
+
+   // send the vertex data
+   buffer_start_offset = 0;
+   glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, teapot.vertex_buffer_size(), teapot.vertices);
+   buffer_start_offset = teapot.vertex_buffer_size();
+   glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, torus.vertex_buffer_size(), torus.vertices);
+   buffer_start_offset = teapot.vertex_buffer_size() + torus.vertex_buffer_size();
+   glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, plane.vertex_buffer_size(), plane.vertices);
+
+   // send the index data
+   buffer_start_offset = 0;
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, teapot.index_buffer_size(), teapot.indices);
+   buffer_start_offset = teapot.index_buffer_size();
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, torus.index_buffer_size(), torus.indices);
+   buffer_start_offset = teapot.index_buffer_size() + torus.index_buffer_size();
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, plane.index_buffer_size(), plane.indices);
    g_torus_index_byte_offset = teapot.index_buffer_size();
+   g_plane_index_byte_offset = teapot.index_buffer_size() + torus.index_buffer_size();
    
 
    // create the vertex array objects
@@ -244,28 +276,41 @@ void me_GL_window::send_data_to_open_GL()
    // is bound for the first time.
    glGenVertexArrays(1, &g_teapot_vertex_array_object_ID);
    glGenVertexArrays(1, &g_torus_vertex_array_object_ID);
+   glGenVertexArrays(1, &g_plane_vertex_array_object_ID);
 
-   void *buffer_start_offset;
-
+   // the teapot
    glBindVertexArray(g_teapot_vertex_array_object_ID);
    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    buffer_start_offset = 0;
-   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
-   buffer_start_offset = reinterpret_cast<void *>(my_vertex::BYTES_PER_POSITION);
-   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
+   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_POSITION;
+   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
+   // the torus
    glBindVertexArray(g_torus_vertex_array_object_ID);
    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
-   buffer_start_offset = reinterpret_cast<void *>(teapot.vertex_buffer_size());
-   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
-   buffer_start_offset = reinterpret_cast<void *>(teapot.vertex_buffer_size() + my_vertex::BYTES_PER_POSITION);
-   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
+   buffer_start_offset = teapot.vertex_buffer_size();
+   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_POSITION;
+   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
+
+   // the plane
+   glBindVertexArray(g_plane_vertex_array_object_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
+   glEnableVertexAttribArray(0);
+   glEnableVertexAttribArray(1);
+   buffer_start_offset = teapot.vertex_buffer_size() + torus.vertex_buffer_size();
+   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_POSITION;
+   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
+
 
    glBindVertexArray(0);
 

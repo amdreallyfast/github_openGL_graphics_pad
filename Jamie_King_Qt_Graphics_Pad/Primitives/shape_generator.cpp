@@ -426,11 +426,10 @@ my_shape_data my_shape_generator::make_plane(unsigned int side_length)
    {
       for (int col_count = 0; col_count < (col_max_count - 1); col_count++)
       {
-         // I worked this out on my notepad by hand.  It's a bit much to explain in a comment.
          plane.indices[index_counter++] = row_count * row_max_count + col_count;
-         plane.indices[index_counter++] = (row_count + 1) * row_max_count + (col_count + 1);
          plane.indices[index_counter++] = row_count * row_max_count + (col_count + 1);
-                                          
+         plane.indices[index_counter++] = (row_count + 1) * row_max_count + (col_count + 1);
+
          plane.indices[index_counter++] = row_count * row_max_count + col_count;
          plane.indices[index_counter++] = (row_count + 1) * row_max_count + (col_count + 1);
          plane.indices[index_counter++] = (row_count + 1) * row_max_count + col_count;

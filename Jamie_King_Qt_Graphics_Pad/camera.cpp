@@ -13,7 +13,7 @@ using std::cout;
 using std::endl;
 
 my_camera::my_camera() :
-   m_position(4.0f, 4.0f, 4.0f),
+   m_position(4.0f, 6.0f, 4.0f),
    m_world_up_vector(0.0f, 1.0f, 0.0f),
    m_view_direction(-1.0f, -1.0f, -1.0f),
    m_strafe_direction(0.0f, 0.0f, 0.0f),
