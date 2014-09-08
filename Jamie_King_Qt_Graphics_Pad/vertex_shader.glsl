@@ -20,21 +20,7 @@ void main()
    gl_Position = full_transform_matrix * vec4(vertex_position, 1.0f);
 
    vec3 light_vector = normalize(light_position - vertex_position);
-
-   //vert_out_color = vertex_color * ambient_light;
    float brightness = dot(light_vector, vertex_normal);
-   if (brightness < 0)
-   {
-      vert_out_color = vec3(1.0f, 0.0f, 0.0f);
-   }
-   else if (brightness == 0)
-   {
-      vert_out_color = vec3(0.0f, 1.0f, 0.0f);
-   }
-   else
-   {
-      vert_out_color = vec3(0.0f, 0.0f, 1.0f);
-   }
-   //vert_out_color = vec3(brightness, brightness, brightness);
+   vert_out_color = vec3(brightness, brightness, brightness);
 }
 

@@ -410,7 +410,7 @@ my_shape_data my_shape_generator::make_plane(unsigned int side_length)
          // start at upper left (-X, +Y) and work to lower right (+X, -Y)
          my_vertex& this_vert = plane.vertices[row_count * row_max_count + col_count];
          this_vert.position.x = col_count - col_half_length;
-         this_vert.position.y = 0;
+         this_vert.position.y = 0.0f;
          this_vert.position.z = row_half_length - row_count;
          this_vert.color = random_color();
          this_vert.normal = vec3(+0.0f, +1.0f, +0.0f);

@@ -118,7 +118,7 @@ void me_GL_window::paintGL()
       ambient_light.g,
       ambient_light.b);
 
-   vec3 light_position(0.0f, +0.3f, +0.0f);
+   vec3 light_position(0.0f, +2.0f, +0.0f);
    glUniform3f(g_diffuse_light_uniform_location,
       light_position.x,
       light_position.y,
@@ -274,17 +274,17 @@ void me_GL_window::send_data_to_open_GL()
    // send the vertex data
    buffer_start_offset = 0;
    glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, teapot.vertex_buffer_size(), teapot.vertices);
-   buffer_start_offset = teapot.vertex_buffer_size();
+   buffer_start_offset += teapot.vertex_buffer_size();
    glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, torus.vertex_buffer_size(), torus.vertices);
-   buffer_start_offset = teapot.vertex_buffer_size() + torus.vertex_buffer_size();
+   buffer_start_offset += torus.vertex_buffer_size();
    glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, plane.vertex_buffer_size(), plane.vertices);
 
    // send the index data
    buffer_start_offset = 0;
    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, teapot.index_buffer_size(), teapot.indices);
-   buffer_start_offset = teapot.index_buffer_size();
+   buffer_start_offset += teapot.index_buffer_size();
    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, torus.index_buffer_size(), torus.indices);
-   buffer_start_offset = teapot.index_buffer_size() + torus.index_buffer_size();
+   buffer_start_offset += torus.index_buffer_size();
    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, plane.index_buffer_size(), plane.indices);
    g_torus_index_byte_offset = teapot.index_buffer_size();
    g_plane_index_byte_offset = teapot.index_buffer_size() + torus.index_buffer_size();
@@ -317,6 +317,7 @@ void me_GL_window::send_data_to_open_GL()
    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
+   glEnableVertexAttribArray(2);
    buffer_start_offset = teapot.vertex_buffer_size();
    glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_POSITION;
@@ -330,6 +331,7 @@ void me_GL_window::send_data_to_open_GL()
    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
+   glEnableVertexAttribArray(2);
    buffer_start_offset = teapot.vertex_buffer_size() + torus.vertex_buffer_size();
    glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_POSITION;
@@ -345,6 +347,7 @@ void me_GL_window::send_data_to_open_GL()
    // take care of any allocated memory
    teapot.cleanup();
    torus.cleanup();
+   plane.cleanup();
 }
 
 
