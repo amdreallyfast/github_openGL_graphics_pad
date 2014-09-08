@@ -77,6 +77,7 @@ void me_GL_window::initializeGL()
    // sets up all the open GL pointers 
    glewInit();
    glEnable(GL_DEPTH_TEST);
+   glEnable(GL_CULL_FACE);
 
    // initialize the things to be drawn
    send_data_to_open_GL();
@@ -133,7 +134,7 @@ void me_GL_window::paintGL()
    glBindVertexArray(g_arrow_vertex_array_object_ID);
    mat4 arrow_1_model_to_world_matrix =
       //translate(mat4(), vec3(1.0f, -1.0f, -5.0f)) *
-      translate(mat4(), vec3(+2.0f, +2.0f, +2.0f)) *
+      translate(mat4(), vec3(-2.0f, +2.0f, +2.0f)) *
       rotate(mat4(), (0.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
    full_transform_matrix = world_to_projection_matrix * arrow_1_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
@@ -215,7 +216,7 @@ void me_GL_window::keyPressEvent(QKeyEvent* e)
 
 void me_GL_window::send_data_to_open_GL()
 {
-   my_shape_data cube = my_shape_generator::Jamie_King_makeTeapot(10, mat4());
+   my_shape_data cube = my_shape_generator::Jamie_King_makeTeapot(20, mat4());
    g_cube_num_indices = cube.num_indices;
 
    my_shape_data arrow = my_shape_generator::make_torus(50);

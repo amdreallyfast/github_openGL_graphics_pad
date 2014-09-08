@@ -553,14 +553,14 @@ my_shape_data my_shape_generator::make_torus(unsigned int tesselation)
          int next_row = (row_count == (tesselation - 1) ? 0 : (row_count + 1));
          int next_col = (col_count == (tesselation - 1) ? 0 : (col_count + 1));
 
-
+         // remember to make these counter-clockwise so that the face normal will project outward, and therefore culling will work properly
          torus.indices[index_counter++] = row_count * tesselation + col_count;
          torus.indices[index_counter++] = next_row * tesselation + next_col;
          torus.indices[index_counter++] = row_count * tesselation + next_col;
 
          torus.indices[index_counter++] = row_count * tesselation + col_count;
-         torus.indices[index_counter++] = next_row * tesselation + next_col;
          torus.indices[index_counter++] = next_row * tesselation + col_count;
+         torus.indices[index_counter++] = next_row * tesselation + next_col;
       }
    }
 
