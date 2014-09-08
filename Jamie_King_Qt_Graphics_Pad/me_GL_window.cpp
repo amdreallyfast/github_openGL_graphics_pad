@@ -49,12 +49,12 @@ bool g_mouse_is_pressed = false;
 GLuint g_vertex_buffer_ID;
 GLuint g_index_buffer_ID;
 
-GLuint g_cube_vertex_array_object_ID;
-GLuint g_cube_num_indices = 0;
+GLuint g_teapot_vertex_array_object_ID;
+GLuint g_teapot_num_indices = 0;
 
-GLuint g_arrow_vertex_array_object_ID;
-GLuint g_arrow_num_indices = 0;
-GLuint g_arrow_index_byte_offset = 0;
+GLuint g_torus_vertex_array_object_ID;
+GLuint g_torus_num_indices = 0;
+GLuint g_torus_index_byte_offset = 0;
 
 GLuint g_transformation_matrix_buffer_ID;
 GLuint g_transformation_matrix_vertex_array_object_ID;
@@ -112,33 +112,34 @@ void me_GL_window::paintGL()
 
    mat4 full_transform_matrix;
 
-   // cube
-   //glBindVertexArray(g_cube_vertex_array_object_ID);
-   //mat4 cube_1_model_to_world_matrix =
+   // teapot
+   //glBindVertexArray(g_teapot_vertex_array_object_ID);
+   //mat4 teapot_1_model_to_world_matrix =
    //   translate(mat4(), vec3(1.0f, 0.0f, +1.0f)) *
    //   rotate(mat4(), (1.0f / 6.0f) * 3.14159f, vec3(0.0f, 1.0f, 1.0f));
-   //full_transform_matrix = world_to_projection_matrix * cube_1_model_to_world_matrix;
+   //full_transform_matrix = world_to_projection_matrix * teapot_1_model_to_world_matrix;
    //glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
-   //glDrawElements(GL_TRIANGLES, g_cube_num_indices, GL_UNSIGNED_SHORT, 0);
+   //glDrawElements(GL_TRIANGLES, g_teapot_num_indices, GL_UNSIGNED_SHORT, 0);
 
-   glBindVertexArray(g_cube_vertex_array_object_ID);
-   mat4 cube_2_model_to_world_matrix =
+   glBindVertexArray(g_teapot_vertex_array_object_ID);
+   mat4 teapot_2_model_to_world_matrix =
       translate(mat4(), vec3(0.0f, -1.0f, +0.0f)) *
+      rotate(mat4(), -(3.14159f / 2.0f), vec3(1.0f, 0.0f, 0.0f)) * 
       rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f));
-   full_transform_matrix = world_to_projection_matrix * cube_2_model_to_world_matrix;
+   full_transform_matrix = world_to_projection_matrix * teapot_2_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
-   glDrawElements(GL_TRIANGLES, g_cube_num_indices, GL_UNSIGNED_SHORT, 0);
+   glDrawElements(GL_TRIANGLES, g_teapot_num_indices, GL_UNSIGNED_SHORT, 0);
 
 
-   // arrow
-   glBindVertexArray(g_arrow_vertex_array_object_ID);
-   mat4 arrow_1_model_to_world_matrix =
+   // torus
+   glBindVertexArray(g_torus_vertex_array_object_ID);
+   mat4 torus_1_model_to_world_matrix =
       //translate(mat4(), vec3(1.0f, -1.0f, -5.0f)) *
       translate(mat4(), vec3(-2.0f, +2.0f, +2.0f)) *
       rotate(mat4(), (0.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
-   full_transform_matrix = world_to_projection_matrix * arrow_1_model_to_world_matrix;
+   full_transform_matrix = world_to_projection_matrix * torus_1_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
-   glDrawElements(GL_TRIANGLES, g_arrow_num_indices, GL_UNSIGNED_SHORT, reinterpret_cast<void *>(g_arrow_index_byte_offset));
+   glDrawElements(GL_TRIANGLES, g_torus_num_indices, GL_UNSIGNED_SHORT, reinterpret_cast<void *>(g_torus_index_byte_offset));
 
    //GLenum e = glGetError();
    //cout << "GL error: " << e << endl;
@@ -155,7 +156,7 @@ void me_GL_window::mouseMoveEvent(QMouseEvent * e)
 
    if (g_mouse_is_pressed)
    {
-      // rotate a cube
+      // rotate a teapot
       glm::vec2 mouse_delta = glm::vec2(new_x, new_y) - prev_mouse_position;
       g_rotation_angle_radians = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
    }
@@ -216,37 +217,37 @@ void me_GL_window::keyPressEvent(QKeyEvent* e)
 
 void me_GL_window::send_data_to_open_GL()
 {
-   my_shape_data cube = my_shape_generator::Jamie_King_makeTeapot(20, mat4());
-   g_cube_num_indices = cube.num_indices;
+   my_shape_data teapot = my_shape_generator::Jamie_King_makeTeapot(20, mat4());
+   g_teapot_num_indices = teapot.num_indices;
 
-   my_shape_data arrow = my_shape_generator::make_torus(50);
-   g_arrow_num_indices = arrow.num_indices;
+   my_shape_data torus = my_shape_generator::make_torus(50);
+   g_torus_num_indices = torus.num_indices;
 
    // create the buffer objects for vertex and index data
    glGenBuffers(1, &g_vertex_buffer_ID);
    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
-   glBufferData(GL_ARRAY_BUFFER, cube.vertex_buffer_size() + arrow.vertex_buffer_size(), 0, GL_STATIC_DRAW);
-   glBufferSubData(GL_ARRAY_BUFFER, 0, cube.vertex_buffer_size(), cube.vertices);
-   glBufferSubData(GL_ARRAY_BUFFER, cube.vertex_buffer_size(), arrow.vertex_buffer_size(), arrow.vertices);
+   glBufferData(GL_ARRAY_BUFFER, teapot.vertex_buffer_size() + torus.vertex_buffer_size(), 0, GL_STATIC_DRAW);
+   glBufferSubData(GL_ARRAY_BUFFER, 0, teapot.vertex_buffer_size(), teapot.vertices);
+   glBufferSubData(GL_ARRAY_BUFFER, teapot.vertex_buffer_size(), torus.vertex_buffer_size(), torus.vertices);
 
    glGenBuffers(1, &g_index_buffer_ID);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
-   glBufferData(GL_ELEMENT_ARRAY_BUFFER, cube.index_buffer_size() + arrow.index_buffer_size(), 0, GL_STATIC_DRAW);
-   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cube.index_buffer_size(), cube.indices);
-   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, cube.index_buffer_size(), arrow.index_buffer_size(), arrow.indices);
-   g_arrow_index_byte_offset = cube.index_buffer_size();
+   glBufferData(GL_ELEMENT_ARRAY_BUFFER, teapot.index_buffer_size() + torus.index_buffer_size(), 0, GL_STATIC_DRAW);
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, teapot.index_buffer_size(), teapot.indices);
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, teapot.index_buffer_size(), torus.index_buffer_size(), torus.indices);
+   g_torus_index_byte_offset = teapot.index_buffer_size();
    
 
    // create the vertex array objects
    // Note: OpenGL does not actually create the buffer when it "generates" it.  Only the ID is generated.
    // The buffer is not created (that is, memory is not set aside for it) until the vertex array object ID 
    // is bound for the first time.
-   glGenVertexArrays(1, &g_cube_vertex_array_object_ID);
-   glGenVertexArrays(1, &g_arrow_vertex_array_object_ID);
+   glGenVertexArrays(1, &g_teapot_vertex_array_object_ID);
+   glGenVertexArrays(1, &g_torus_vertex_array_object_ID);
 
    void *buffer_start_offset;
 
-   glBindVertexArray(g_cube_vertex_array_object_ID);
+   glBindVertexArray(g_teapot_vertex_array_object_ID);
    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
@@ -256,13 +257,13 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
-   glBindVertexArray(g_arrow_vertex_array_object_ID);
+   glBindVertexArray(g_torus_vertex_array_object_ID);
    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
-   buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size());
+   buffer_start_offset = reinterpret_cast<void *>(teapot.vertex_buffer_size());
    glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
-   buffer_start_offset = reinterpret_cast<void *>(cube.vertex_buffer_size() + my_vertex::BYTES_PER_POSITION);
+   buffer_start_offset = reinterpret_cast<void *>(teapot.vertex_buffer_size() + my_vertex::BYTES_PER_POSITION);
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
@@ -270,8 +271,8 @@ void me_GL_window::send_data_to_open_GL()
 
 
    // take care of any allocated memory
-   cube.cleanup();
-   arrow.cleanup();
+   teapot.cleanup();
+   torus.cleanup();
 }
 
 
