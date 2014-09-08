@@ -61,9 +61,11 @@ GLuint g_plane_vertex_array_object_ID;
 GLuint g_plane_num_indices = 0;
 GLuint g_plane_index_byte_offset = 0;
 
-GLuint g_transformation_matrix_buffer_ID;
-GLuint g_transformation_matrix_vertex_array_object_ID;
 GLint g_transform_matrix_uniform_location;
+GLint g_ambient_light_uniform_location;
+GLint g_diffuse_light_uniform_location;
+
+
 
 
 me_GL_window::~me_GL_window()
@@ -97,6 +99,10 @@ void me_GL_window::initializeGL()
 
    g_transform_matrix_uniform_location =
       glGetUniformLocation(shader_thingy.get_shader_program_ID(), "full_transform_matrix");
+   g_ambient_light_uniform_location =
+      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "ambient_light");
+   g_diffuse_light_uniform_location =
+      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "light_position");
 }
 
 
@@ -104,6 +110,20 @@ void me_GL_window::paintGL()
 {
    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
    glViewport(0, 0, width(), height());
+
+   // set up light
+   vec3 ambient_light(0.5f, 0.5f, 0.5f);
+   glUniform3f(g_ambient_light_uniform_location, 
+      ambient_light.r,
+      ambient_light.g,
+      ambient_light.b);
+
+   //vec3 light_position(0.0f, +3.0f, 0.0f);
+   //glUniform3f(g_diffuse_light_uniform_location,
+   //   light_position.x,
+   //   light_position.y,
+   //   light_position.z);
+
 
    // set up the transformation matrix 
    // Note: The calls to width() and height() are only useful on startup because they are not being
@@ -283,10 +303,13 @@ void me_GL_window::send_data_to_open_GL()
    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
+   glEnableVertexAttribArray(2);
    buffer_start_offset = 0;
    glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_POSITION;
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_COLOR;
+   glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    // the torus
@@ -298,6 +321,8 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_POSITION;
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_COLOR;
+   glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    // the plane
@@ -309,6 +334,8 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_POSITION;
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_COLOR;
+   glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
 
