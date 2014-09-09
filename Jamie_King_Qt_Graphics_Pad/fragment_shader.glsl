@@ -1,11 +1,15 @@
 #version 430
    
-in vec3 vert_out_color;
-   
-out vec4 frag_out_color;
+in vec3 vertex_out_normal;
+in vec3 vertex_out_position;
+uniform vec3 light_position;
+
+out vec4 out_color;
    
 void main()
 {
-   frag_out_color = vec4(vert_out_color, 1.0f);
+   vec3 light_vector = normalize(light_position - vertex_out_position);
+   float brightness = dot(light_vector, vertex_out_normal);
+   out_color = vec4(brightness, brightness, 0.0, 1.0f);
 }
 

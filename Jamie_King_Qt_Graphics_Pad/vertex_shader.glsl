@@ -11,16 +11,16 @@ in layout(location = 2) vec3 vertex_normal;
 uniform mat4 full_transform_matrix;
 
 uniform vec3 ambient_light;
-uniform vec3 light_position;
+//uniform vec3 light_position;
 
-out vec3 vert_out_color;
+out vec3 vertex_out_normal;
+out vec3 vertex_out_position;  // this is the vertex position so that the fragment shader can interpolate the points on the triangle without having them transformed
 
 void main()
 {
    gl_Position = full_transform_matrix * vec4(vertex_position, 1.0f);
 
-   vec3 light_vector = normalize(light_position - vertex_position);
-   float brightness = dot(light_vector, vertex_normal);
-   vert_out_color = vec3(brightness, brightness, brightness);
+   vertex_out_normal = vertex_normal;
+   vertex_out_position = vertex_position;
 }
 

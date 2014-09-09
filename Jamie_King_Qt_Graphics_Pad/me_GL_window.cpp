@@ -118,7 +118,7 @@ void me_GL_window::paintGL()
       ambient_light.g,
       ambient_light.b);
 
-   vec3 light_position(0.0f, +2.0f, +0.0f);
+   vec3 light_position(0.0f, +1.0f, +0.0f);
    glUniform3f(g_diffuse_light_uniform_location,
       light_position.x,
       light_position.y,
