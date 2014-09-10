@@ -522,6 +522,9 @@ my_shape_data my_shape_generator::make_torus(unsigned int tesselation)
          glm::rotate(mat4(), pipe_slice_counter * pipe_slice_angle, vec3(+0.0f, +1.0f, +0.0f)) *
          glm::translate(mat4(), vec3(torus_radius, +0.0f, +0.0f));
 
+      // generate the center of the circle (for calculation of normals)
+      vec3 circle_center = vec3(transform * vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
       // generate the circle
       for (int circle_slice_counter = 0; circle_slice_counter < slices_per_circle; circle_slice_counter++)
       {
@@ -535,7 +538,7 @@ my_shape_data my_shape_generator::make_torus(unsigned int tesselation)
          // now transform each vertex
          v.position = vec3(transform * circle_vert);
          
-         v.normal = glm::normalize(v.position);
+         v.normal = glm::normalize(v.position - circle_center);
          v.color = random_color();
       }
    }

@@ -10,6 +10,6 @@ void main()
 {
    vec3 light_vector = normalize(light_position - vertex_out_position);
    float brightness = dot(light_vector, vertex_out_normal);
-   out_color = vec4(brightness, brightness, 0.0, 1.0f);
+   out_color = vec4(brightness, brightness, brightness, 1.0f);
 }
 
