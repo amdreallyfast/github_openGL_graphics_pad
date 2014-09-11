@@ -61,7 +61,8 @@ GLuint g_plane_vertex_array_object_ID;
 GLuint g_plane_num_indices = 0;
 GLuint g_plane_index_byte_offset = 0;
 
-GLint g_transform_matrix_uniform_location;
+GLint g_world_to_projection_matrix_uniform_location;
+GLint g_model_to_world_matrix_uniform_location;
 GLint g_ambient_light_uniform_location;
 GLint g_diffuse_light_uniform_location;
 
@@ -84,7 +85,7 @@ void me_GL_window::initializeGL()
    // sets up all the open GL pointers 
    glewInit();
    glEnable(GL_DEPTH_TEST);
-   glEnable(GL_CULL_FACE);
+   //glEnable(GL_CULL_FACE);
 
    // initialize the things to be drawn
    send_data_to_open_GL();
@@ -97,8 +98,10 @@ void me_GL_window::initializeGL()
       std::cout << "something bad happened during shader initialization" << std::endl;
    }
 
-   g_transform_matrix_uniform_location =
-      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "full_transform_matrix");
+   g_world_to_projection_matrix_uniform_location =
+      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "world_to_projection_matrix");
+   g_model_to_world_matrix_uniform_location =
+      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "model_to_world_matrix");
    g_ambient_light_uniform_location =
       glGetUniformLocation(shader_thingy.get_shader_program_ID(), "ambient_light");
    g_diffuse_light_uniform_location =
@@ -134,37 +137,33 @@ void me_GL_window::paintGL()
    float far_plane_dist = 20.0f;
    mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
    mat4 world_to_projection_matrix = projection_matrix * g_camera.get_world_to_view_matrix();
+   glUniformMatrix4fv(g_world_to_projection_matrix_uniform_location, 1, GL_FALSE, &world_to_projection_matrix[0][0]);
 
-   mat4 full_transform_matrix;
+   mat4 model_to_world_matrix = mat4();
 
    // plane 
    // Note: No transformation for the plane, but it does require the matrix to be specified so that it 
    // doesn't have another object's transformation applied to itself.
    glBindVertexArray(g_plane_vertex_array_object_ID);
-   mat4 plane_model_to_world_matrix =
-      translate(mat4(), vec3(0.0f, 0.0f, 0.0f));
-   full_transform_matrix = world_to_projection_matrix * plane_model_to_world_matrix;
-   glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
+   glUniformMatrix4fv(g_model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
    glDrawElements(GL_TRIANGLES, g_plane_num_indices, GL_UNSIGNED_SHORT, (void *)(g_plane_index_byte_offset));
 
    // teapot
    // Note: Rotate the teapot so that it is right-side-up (the mathematically generated model assumes +Z as postive vertical)
    glBindVertexArray(g_teapot_vertex_array_object_ID);
-   mat4 teapot_2_model_to_world_matrix = 
+   model_to_world_matrix = 
       translate(mat4(), vec3(+3.0f, +1.0f, +1.0f)) *
       rotate(mat4(), -(3.14159f / 2.0f), vec3(1.0f, 0.0f, 0.0f)) * 
       rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f));
-   full_transform_matrix = world_to_projection_matrix * teapot_2_model_to_world_matrix;
-   glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
+   glUniformMatrix4fv(g_model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
    glDrawElements(GL_TRIANGLES, g_teapot_num_indices, GL_UNSIGNED_SHORT, 0);
 
    // torus
    glBindVertexArray(g_torus_vertex_array_object_ID);
-   mat4 torus_1_model_to_world_matrix = 
+   model_to_world_matrix = 
       translate(mat4(), vec3(-3.0f, +1.0f, +3.0f)) *
       rotate(mat4(), (0.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
-   full_transform_matrix = world_to_projection_matrix * torus_1_model_to_world_matrix;
-   glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
+   glUniformMatrix4fv(g_model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
    glDrawElements(GL_TRIANGLES, g_torus_num_indices, GL_UNSIGNED_SHORT, (void *)(g_torus_index_byte_offset));
 
    //GLenum e = glGetError();
