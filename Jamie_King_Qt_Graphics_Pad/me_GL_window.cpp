@@ -151,12 +151,12 @@ void me_GL_window::paintGL()
    // Note: Rotate the teapot so that it is right-side-up (the mathematically generated model assumes +Z as postive vertical)
    glBindVertexArray(g_teapot_vertex_array_object_ID);
    mat4 teapot_2_model_to_world_matrix = 
-      translate(mat4(), vec3(+2.0f, +1.0f, +1.0f)) *
+      translate(mat4(), vec3(+3.0f, +1.0f, +1.0f)) *
       rotate(mat4(), -(3.14159f / 2.0f), vec3(1.0f, 0.0f, 0.0f)) * 
       rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f));
    full_transform_matrix = world_to_projection_matrix * teapot_2_model_to_world_matrix;
    glUniformMatrix4fv(g_transform_matrix_uniform_location, 1, GL_FALSE, &full_transform_matrix[0][0]);
-   //glDrawElements(GL_TRIANGLES, g_teapot_num_indices, GL_UNSIGNED_SHORT, 0);
+   glDrawElements(GL_TRIANGLES, g_teapot_num_indices, GL_UNSIGNED_SHORT, 0);
 
    // torus
    glBindVertexArray(g_torus_vertex_array_object_ID);
@@ -249,7 +249,7 @@ void me_GL_window::send_data_to_open_GL()
    my_shape_data torus = my_shape_generator::make_torus(50);
    g_torus_num_indices = torus.num_indices;
 
-   my_shape_data plane = my_shape_generator::make_plane();
+   my_shape_data plane = my_shape_generator::make_plane(20);
    g_plane_num_indices = plane.num_indices;
 
    int buffer_start_offset = 0;

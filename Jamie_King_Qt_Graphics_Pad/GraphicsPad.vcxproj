@@ -53,13 +53,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Qt\4.8.5\include;C:\open_gl_stuff;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\middleware;$(ProjectDir)\..\middleware\Qt\include;$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;QtCored4.lib;QtGuid4.lib;QtOpenGLd4.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Qt\4.8.5\lib;C:\open_gl_stuff\glew-1.10.0\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\..\middleware\glew-1.10.0\lib\Release\Win32;$(ProjectDir)\..\middleware\Qt\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

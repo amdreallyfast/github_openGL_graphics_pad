@@ -25,6 +25,8 @@
 !*.txt
 !*.glsl
 
+!*.zip
+
 # we want to keep these around
 !.gitignore
 !.gitattributes
@@ -37,3 +39,5 @@
 
 # now unignore all sub-folders
 !**/
+middleware/
+
