@@ -105,7 +105,7 @@ void me_GL_window::initializeGL()
    g_ambient_light_uniform_location =
       glGetUniformLocation(shader_thingy.get_shader_program_ID(), "ambient_light");
    g_diffuse_light_uniform_location =
-      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "light_position");
+      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "light_position_world");
 }
 
 
@@ -115,7 +115,7 @@ void me_GL_window::paintGL()
    glViewport(0, 0, width(), height());
 
    // set up light
-   vec3 ambient_light(0.3f, 0.3f, 0.3f);
+   vec3 ambient_light(0.05f, 0.05f, 0.05f);
    glUniform3f(g_ambient_light_uniform_location, 
       ambient_light.r,
       ambient_light.g,
