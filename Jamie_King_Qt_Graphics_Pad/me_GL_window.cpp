@@ -98,14 +98,10 @@ void me_GL_window::initializeGL()
       std::cout << "something bad happened during shader initialization" << std::endl;
    }
 
-   g_world_to_projection_matrix_uniform_location =
-      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "world_to_projection_matrix");
-   g_model_to_world_matrix_uniform_location =
-      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "model_to_world_matrix");
-   g_ambient_light_uniform_location =
-      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "ambient_light");
-   g_diffuse_light_uniform_location =
-      glGetUniformLocation(shader_thingy.get_shader_program_ID(), "light_position_world");
+   g_world_to_projection_matrix_uniform_location = shader_thingy.get_uniform_location("world_to_projection_matrix");
+   g_model_to_world_matrix_uniform_location = shader_thingy.get_uniform_location("model_to_world_matrix");
+   g_ambient_light_uniform_location = shader_thingy.get_uniform_location("ambient_light");
+   g_diffuse_light_uniform_location = shader_thingy.get_uniform_location("light_position_world");
 }
 
 

@@ -96,8 +96,10 @@
     <ClInclude Include="utilities\shader_handler.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="fragment_shader.glsl" />
-    <None Include="vertex_shader.glsl" />
+    <None Include="shaders\fragment_pass_through.glsl" />
+    <None Include="shaders\fragment_lighting.glsl" />
+    <None Include="shaders\vertex_pass_through.glsl" />
+    <None Include="shaders\vertex_lighting.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

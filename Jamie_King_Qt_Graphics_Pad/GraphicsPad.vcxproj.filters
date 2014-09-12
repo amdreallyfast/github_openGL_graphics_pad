@@ -17,7 +17,9 @@
     <ClInclude Include="Primitives\TeapotData.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="fragment_shader.glsl" />
-    <None Include="vertex_shader.glsl" />
+    <None Include="shaders\vertex_lighting.glsl" />
+    <None Include="shaders\vertex_pass_through.glsl" />
+    <None Include="shaders\fragment_pass_through.glsl" />
+    <None Include="shaders\fragment_lighting.glsl" />
   </ItemGroup>
 </Project>

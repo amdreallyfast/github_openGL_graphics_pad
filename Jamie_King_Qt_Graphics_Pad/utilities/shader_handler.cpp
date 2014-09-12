@@ -2,15 +2,28 @@
 
 // for reading shader text from files
 #include <fstream>
+using std::ifstream;
 #include <sstream>
+using std::ostringstream;
+#include <string>
+using std::string;
 
 // for printing to the console
 #include <iostream>
 using std::cout;
 using std::endl;
 
+
 shader_handler::shader_handler()
 {
+}
+
+shader_handler::~shader_handler()
+{
+   // tell the GL context to stop using its current program so that we can delete it
+   // Note: Nothing will happen if we tell GL to delete a program that is bound to the context.
+   glUseProgram(0);
+   glDeleteProgram(m_lighting_shader_program_ID);
 }
 
 shader_handler& shader_handler::get_instance()
@@ -20,7 +33,7 @@ shader_handler& shader_handler::get_instance()
    return S;
 }
 
-bool shader_handler::check_shader_program_status(
+bool helper_check_shader_program_status(
    GLuint object_ID,
    PFNGLGETSHADERIVPROC object_property_getter_func_ptr,
    GLenum object_status_type,
@@ -58,11 +71,11 @@ bool shader_handler::check_shader_program_status(
 }
 
 
-bool shader_handler::check_shader_status(GLuint shader_ID)
+bool helper_check_shader_status(GLuint shader_ID)
 {
    bool this_ret_val = false;
 
-   this_ret_val = check_shader_program_status(shader_ID, glGetShaderiv, GL_COMPILE_STATUS, glGetShaderInfoLog);
+   this_ret_val = helper_check_shader_program_status(shader_ID, glGetShaderiv, GL_COMPILE_STATUS, glGetShaderInfoLog);
    if (this_ret_val)
    {
       cout << "shader ID '" << shader_ID << "' compiled ok" << endl;
@@ -71,11 +84,11 @@ bool shader_handler::check_shader_status(GLuint shader_ID)
    return this_ret_val;
 }
 
-bool shader_handler::check_program_status(GLuint program_ID)
+bool helper_check_program_status(GLuint program_ID)
 {
    bool this_ret_val = false;
 
-   this_ret_val = check_shader_program_status(program_ID, glGetProgramiv, GL_LINK_STATUS, glGetProgramInfoLog);
+   this_ret_val = helper_check_shader_program_status(program_ID, glGetProgramiv, GL_LINK_STATUS, glGetProgramInfoLog);
    if (this_ret_val)
    {
       cout << "program ID '" << program_ID << "' linked ok" << endl;
@@ -84,19 +97,19 @@ bool shader_handler::check_program_status(GLuint program_ID)
    return this_ret_val;
 }
 
-bool shader_handler::read_text_from_file(const char* file_path, std::string &put_text_here)
+bool helper_read_text_from_file(const char* file_path, string &put_text_here)
 {
    bool this_ret_val = false;
 
-   std::ifstream in_file_stream;
-   in_file_stream.open(file_path, std::ifstream::in);
+   ifstream in_file_stream;
+   in_file_stream.open(file_path, ifstream::in);
    if (in_file_stream.is_open())
    {
       this_ret_val = true;
 
       // credit for the following code goes to "method rdbuf" at 
       // http://insanecoding.blogspot.com/2011/11/how-to-read-in-file-in-c.html
-      std::ostringstream contents;
+      ostringstream contents;
       contents << in_file_stream.rdbuf();
       in_file_stream.close();
 
@@ -108,77 +121,98 @@ bool shader_handler::read_text_from_file(const char* file_path, std::string &put
    else
    {
       this_ret_val = false;
-      std::cout << "could not open file '" << file_path << "'" << std::endl;
+      cout << "could not open file '" << file_path << "'" << endl;
    }
 
    return this_ret_val;
 }
 
+bool helper_install_shader(GLenum shader_type, const char* shader_file_path, GLuint *put_shader_ID_here)
+{
+   if (0 == shader_file_path) { return false; }
+   else if (0 == put_shader_ID_here) { return false; }
+
+   const char* old_GL_double_pointer_adapter[1];
+   bool success = false;
+   string shader_code_text;
+
+   // read the text from the shader file
+   success = helper_read_text_from_file(shader_file_path, shader_code_text);
+   if (!success) { return false; }
+
+   // text was read ok, so now create the shader ID
+   GLuint shader_ID = glCreateShader(shader_type);
+   old_GL_double_pointer_adapter[0] = shader_code_text.c_str();
+   glShaderSource(shader_ID, 1, old_GL_double_pointer_adapter, 0);
+   glCompileShader(shader_ID);
+
+   success = helper_check_shader_status(shader_ID);
+   if (!success) { return false; }
+
+   // shader creation and compilation successful, so record the shader ID in the provided argument
+   *put_shader_ID_here = shader_ID;
+
+   return true;
+}
+
+
 bool shader_handler::install_shaders()
 {
-   const char* old_GL_double_pointer_adapter[1];
-
-   bool ok_so_far = false;
+   bool success = false;
 
    // create shader objects
-   GLuint vertex_shader_ID = glCreateShader(GL_VERTEX_SHADER);
-   GLuint fragment_shader_ID = glCreateShader(GL_FRAGMENT_SHADER);
+   GLuint vertex_shader_ID;
+   GLuint fragment_shader_ID;
 
-   // start with the vertex shader and give it the source material, then compile it into an object
-   std::string shader_code_text;
-   ok_so_far = read_text_from_file("vertex_shader.glsl", shader_code_text);
-   if (ok_so_far)
-   {
-      old_GL_double_pointer_adapter[0] = shader_code_text.c_str();
-      glShaderSource(vertex_shader_ID, 1, old_GL_double_pointer_adapter, 0);
-      glCompileShader(vertex_shader_ID);
-      ok_so_far = check_shader_status(vertex_shader_ID);
+   success = helper_install_shader(GL_VERTEX_SHADER, "shaders/vertex_lighting.glsl", &vertex_shader_ID);
+   if (!success) { return false; }
+   success = helper_install_shader(GL_FRAGMENT_SHADER, "shaders/fragment_lighting.glsl", &fragment_shader_ID);
+   if (!success) 
+   { 
+      glDeleteShader(vertex_shader_ID);
+      return false;
    }
 
-   if (ok_so_far)
-   {
-      // repeat for the fragment shader
-      ok_so_far = read_text_from_file("fragment_shader.glsl", shader_code_text);
-      old_GL_double_pointer_adapter[0] = shader_code_text.c_str();
-      glShaderSource(fragment_shader_ID, 1, old_GL_double_pointer_adapter, 0);
-      glCompileShader(fragment_shader_ID);
-      ok_so_far = check_shader_status(fragment_shader_ID);
-   }
-
-   if (ok_so_far)
-   {
-      // create a shader executable for the GPU and link the shader objects that have been compiled so far
-      m_shader_program_ID = glCreateProgram();
-      glAttachShader(m_shader_program_ID, vertex_shader_ID);
-      glAttachShader(m_shader_program_ID, fragment_shader_ID);
-      glLinkProgram(m_shader_program_ID);
-      ok_so_far = check_program_status(m_shader_program_ID);
-
-      // set the context to use the shader program that we just made
-      glUseProgram(m_shader_program_ID);
-   }
-
-   if (ok_so_far)
-   {
-      // don't need the shaders anymore, so clean them up 
-      // Note: The program is still required.  Clean up that when this class disappears at program end.
+   // create a shader executable for the GPU and link the shader objects that have been compiled so far
+   m_lighting_shader_program_ID = glCreateProgram();
+   glAttachShader(m_lighting_shader_program_ID, vertex_shader_ID);
+   glAttachShader(m_lighting_shader_program_ID, fragment_shader_ID);
+   glLinkProgram(m_lighting_shader_program_ID);
+   success = helper_check_program_status(m_lighting_shader_program_ID);
+   if (!success) 
+   { 
       glDeleteShader(vertex_shader_ID);
       glDeleteShader(fragment_shader_ID);
+      return false; 
    }
 
+   // set the context to use the shader program that we just made
+   m_current_shader_program_ID = m_lighting_shader_program_ID;
+   glUseProgram(m_current_shader_program_ID);
 
-   return ok_so_far;
+   // don't need the shaders anymore, so clean them up 
+   // Note: The program is still required.  Clean up that when this class disappears at program end.
+   glDeleteShader(vertex_shader_ID);
+   glDeleteShader(fragment_shader_ID);
+
+   return success;
 }
 
-GLint shader_handler::get_shader_program_ID()
+
+void shader_handler::activate_pass_through_shader_program()
 {
-   return m_shader_program_ID;
+   
 }
 
-shader_handler::~shader_handler()
+void shader_handler::activate_lighting_shader_program()
 {
-   // tell the GL context to stop using its current program so that we can delete it
-   // Note: Nothing will happen if we tell GL to delete a program that is bound to the context.
-   glUseProgram(0);
-   glDeleteProgram(m_shader_program_ID);
+   glUseProgram(m_current_shader_program_ID);
 }
+
+GLint shader_handler::get_uniform_location(const char* uniform_name_as_string)
+{
+   return glGetUniformLocation(m_current_shader_program_ID, uniform_name_as_string);
+}
+
+
+
