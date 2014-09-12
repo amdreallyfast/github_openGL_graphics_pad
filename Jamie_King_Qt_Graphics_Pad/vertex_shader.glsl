@@ -1,26 +1,25 @@
 #version 430
 	
-in layout(location = 0) vec3 vertex_position;
+in layout(location = 0) vec3 vertex_position_model;
 in layout(location = 1) vec3 vertex_color;
-in layout(location = 2) vec3 vertex_normal;
+in layout(location = 2) vec3 vertex_normal_model;
 
-// Note: This mat4 actually takes up locations 2, 3, 4, and 5 because
-// each row has to be sent as its own vertex attribute object.  There
-// is no way to send them all at once, sadly.
-//in layout(location = 2) mat4 full_transform_matrix;
-uniform mat4 full_transform_matrix;
+uniform mat4 world_to_projection_matrix;
+uniform mat4 model_to_world_matrix;
 
-uniform vec3 ambient_light;
-//uniform vec3 light_position;
-
-out vec3 vertex_out_normal;
-out vec3 vertex_out_position;  // this is the vertex position so that the fragment shader can interpolate the points on the triangle without having them transformed
+// these outputs are for the lighting that is done in the fragment shader
+out vec3 vertex_position_world;
+out vec3 vertex_normal_world;
 
 void main()
 {
-   gl_Position = full_transform_matrix * vec4(vertex_position, 1.0f);
+   // let the position still be translated but do not let the normal be translated
+   vec4 position_world = model_to_world_matrix * vec4(vertex_position_model, 1.0f);
+   vec4 normal_world = model_to_world_matrix * vec4(vertex_normal_model, 0.0f);
 
-   vertex_out_normal = vertex_normal;
-   vertex_out_position = vertex_position;
+   gl_Position = world_to_projection_matrix * position_world;
+
+   vertex_normal_world = vec3(normal_world);
+   vertex_position_world = vec3(position_world);
 }
 
