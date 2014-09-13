@@ -136,8 +136,9 @@ void me_GL_window::paintGL()
    glUniformMatrix4fv(world_to_projection_matrix_uniform_location, 1, GL_FALSE, &world_to_projection_matrix[0][0]);
 
    model_to_world_matrix =
-      translate(mat4(), vec3(0.0f, 1.0f, -4.0f)) *
-      scale(mat4(), vec3(1.0f, 1.0f, 1.0f));
+      //translate(mat4(), vec3(0.0f, 1.0f, -4.0f)) *
+      translate(mat4(), g_light_position_world) *
+      scale(mat4(), vec3(0.3f, 0.3f, 0.3f));
    model_to_world_matrix_uniform_location = shader_thingy.get_uniform_location("model_to_world_matrix");
    glUniformMatrix4fv(model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
 
@@ -201,10 +202,20 @@ void me_GL_window::mouseMoveEvent(QMouseEvent * e)
    {
       // move the diffuse light
       // Note: I use "X" and "Y" for the mouse delta because the display area is considered a 2D surface.
-      // However, I don't want the light to move up and down.  I want 
+      // However, I don't want the light to move up and down.  I want it to move left and right according 
+      // to the camera's position.
       float mouse_delta_x = new_x - prev_mouse_position.x;
-      float mouse_delta_y = new_y - prev_mouse_position.y;
-      g_light_position_world.x += mouse_delta_x;
+      float mouse_delta_y = prev_mouse_position.y - new_y;  // this difference order is because pixel position increases, not decreases, from top of screen to bottom
+      
+      // do the "left and right" first
+      vec3 camera_strafe = g_camera.get_strafe_vector();
+      g_light_position_world += (mouse_delta_x * 0.02f) * camera_strafe;
+
+      // now the "forward and backward"
+      vec3 camera_forward = g_camera.get_forward_vector();
+      camera_forward.y = 0.0f;   // kill the vertical component for the sake of keeping the light at the same height at all times
+      g_light_position_world += (mouse_delta_y * 0.02f) * camera_forward;
+
 
       // rotate a teapot
       //glm::vec2 mouse_delta = glm::vec2(new_x, new_y) - prev_mouse_position;
@@ -213,10 +224,11 @@ void me_GL_window::mouseMoveEvent(QMouseEvent * e)
    else
    {
       // rotate camera
-      prev_mouse_position.x = new_x;
-      prev_mouse_position.y = new_y;
       g_camera.mouse_update(glm::vec2(new_x, new_y));
    }
+
+   prev_mouse_position.x = new_x;
+   prev_mouse_position.y = new_y;
 
    this->repaint();
 }

@@ -9,6 +9,9 @@ public:
    glm::mat4 get_world_to_view_matrix() const;
    void mouse_update(const glm::vec2& new_mouse_position);
 
+   glm::vec3 get_strafe_vector();
+   glm::vec3 get_forward_vector();
+
    void move_forward();
    void move_back();
    void strafe_left();
