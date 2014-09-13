@@ -131,7 +131,7 @@ void me_GL_window::paintGL()
    shader_handler& shader_thingy = shader_handler::get_instance();
 
    // render the cube light first with the pass-through shader
-   //shader_thingy.activate_pass_through_shader_program();
+   shader_thingy.activate_pass_through_shader_program();
    world_to_projection_matrix_uniform_location = shader_thingy.get_uniform_location("world_to_projection_matrix");
    glUniformMatrix4fv(world_to_projection_matrix_uniform_location, 1, GL_FALSE, &world_to_projection_matrix[0][0]);
 
@@ -156,14 +156,6 @@ void me_GL_window::paintGL()
    glUniformMatrix4fv(world_to_projection_matrix_uniform_location, 1, GL_FALSE, &world_to_projection_matrix[0][0]);
    glUniform3f(ambient_light_uniform_location, ambient_light.r, ambient_light.g, ambient_light.b);
    glUniform3f(diffuse_light_uniform_location, g_light_position_world.x, g_light_position_world.y, g_light_position_world.z);
-
-   //// cube light
-   //glBindVertexArray(g_cube_light_vertex_array_object_ID);
-   //model_to_world_matrix =
-   //   translate(mat4(), vec3(0.0f, 1.0f, -4.0f)) * 
-   //   scale(mat4(), vec3(0.3f, 0.3f, 0.3f));
-   //glUniformMatrix4fv(model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
-   //glDrawElements(GL_TRIANGLES, g_cube_light_num_indices, GL_UNSIGNED_SHORT, (void *)(g_cube_light_index_byte_offset));
 
 
    // plane 
@@ -384,7 +376,7 @@ void me_GL_window::send_data_to_open_GL()
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    glEnableVertexAttribArray(2);
-   buffer_start_offset = 0;
+   buffer_start_offset = teapot.vertex_buffer_size() + torus.vertex_buffer_size() + plane.vertex_buffer_size();
    glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_POSITION;
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
