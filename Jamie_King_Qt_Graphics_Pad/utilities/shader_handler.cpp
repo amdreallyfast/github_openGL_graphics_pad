@@ -155,8 +155,7 @@ bool helper_install_shader(GLenum shader_type, const char* shader_file_path, GLu
    return true;
 }
 
-
-bool shader_handler::install_shaders()
+bool helper_install_generic_shader_program(const char *vertex_shader_path, const char *fragment_shader_path, GLuint *put_program_ID_here)
 {
    bool success = false;
 
@@ -164,36 +163,53 @@ bool shader_handler::install_shaders()
    GLuint vertex_shader_ID;
    GLuint fragment_shader_ID;
 
-   success = helper_install_shader(GL_VERTEX_SHADER, "shaders/vertex_lighting.glsl", &vertex_shader_ID);
+   success = helper_install_shader(GL_VERTEX_SHADER, vertex_shader_path, &vertex_shader_ID);
    if (!success) { return false; }
-   success = helper_install_shader(GL_FRAGMENT_SHADER, "shaders/fragment_lighting.glsl", &fragment_shader_ID);
-   if (!success) 
-   { 
+   success = helper_install_shader(GL_FRAGMENT_SHADER, fragment_shader_path, &fragment_shader_ID);
+   if (!success)
+   {
       glDeleteShader(vertex_shader_ID);
       return false;
    }
 
    // create a shader executable for the GPU and link the shader objects that have been compiled so far
-   m_lighting_shader_program_ID = glCreateProgram();
-   glAttachShader(m_lighting_shader_program_ID, vertex_shader_ID);
-   glAttachShader(m_lighting_shader_program_ID, fragment_shader_ID);
-   glLinkProgram(m_lighting_shader_program_ID);
-   success = helper_check_program_status(m_lighting_shader_program_ID);
-   if (!success) 
-   { 
+   GLuint shader_program_ID = glCreateProgram();
+   glAttachShader(shader_program_ID, vertex_shader_ID);
+   glAttachShader(shader_program_ID, fragment_shader_ID);
+   glLinkProgram(shader_program_ID);
+   success = helper_check_program_status(shader_program_ID);
+   if (!success)
+   {
       glDeleteShader(vertex_shader_ID);
       glDeleteShader(fragment_shader_ID);
-      return false; 
+      return false;
    }
 
-   // set the context to use the shader program that we just made
-   m_current_shader_program_ID = m_lighting_shader_program_ID;
-   glUseProgram(m_current_shader_program_ID);
+   // the shaders compiled and linked ok, so put the program ID in the provided argument
+   *put_program_ID_here = shader_program_ID;
 
    // don't need the shaders anymore, so clean them up 
    // Note: The program is still required.  Clean up that when this class disappears at program end.
    glDeleteShader(vertex_shader_ID);
    glDeleteShader(fragment_shader_ID);
+
+   return success;
+}
+
+bool shader_handler::install_shaders()
+{
+   bool success = false;
+
+   success = helper_install_generic_shader_program(
+      "shaders/vertex_lighting.glsl",
+      "shaders/fragment_lighting.glsl",
+      &m_lighting_shader_program_ID);
+   if (!success) { return false; }
+   
+   glUseProgram(m_lighting_shader_program_ID);
+   m_current_shader_program_ID = m_lighting_shader_program_ID;
+
+
 
    return success;
 }
