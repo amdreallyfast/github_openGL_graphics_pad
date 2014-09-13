@@ -206,10 +206,20 @@ bool shader_handler::install_shaders()
       &m_lighting_shader_program_ID);
    if (!success) { return false; }
    
-   glUseProgram(m_lighting_shader_program_ID);
-   m_current_shader_program_ID = m_lighting_shader_program_ID;
-
-
+   success = helper_install_generic_shader_program(
+      "shaders/vertex_pass_through.glsl",
+      "shaders/fragment_pass_through.glsl",
+      &m_pass_through_shader_program_ID);
+   if (!success) 
+   { 
+      glDeleteProgram(m_lighting_shader_program_ID);
+      return false; 
+   }
+   
+   
+   // use one of the programs
+   glUseProgram(m_pass_through_shader_program_ID);
+   m_current_shader_program_ID = m_pass_through_shader_program_ID;
 
    return success;
 }
