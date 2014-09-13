@@ -48,10 +48,8 @@ bool g_mouse_is_pressed = false;
 // - index buffer: stores indices of position/color combos in the vertex buffer
 // - vertex array object: stores vertex attrib array and pointer attribues, relieving you of the burden of having to re-specify them manually on every draw call if you are drawing from different vertex buffers
 
-GLuint g_other_vertex_buffer_ID;
-GLuint g_other_index_buffer_ID;
-GLuint g_cube_light_vertex_buffer_ID;
-GLuint g_cube_light_index_buffer_ID;
+GLuint g_vertex_buffer_ID;
+GLuint g_index_buffer_ID;
 
 GLuint g_teapot_vertex_array_object_ID;
 GLuint g_teapot_num_indices = 0;
@@ -69,18 +67,13 @@ GLuint g_cube_light_vertex_array_object_ID;
 GLuint g_cube_light_num_indices = 0;
 GLuint g_cube_light_index_byte_offset = 0;
 
-//GLint g_world_to_projection_matrix_uniform_location;
-//GLint g_model_to_world_matrix_uniform_location;
-//GLint g_ambient_light_uniform_location;
-//GLint g_diffuse_light_uniform_location;
-//
 
 
 
 me_GL_window::~me_GL_window()
 {
-   glDeleteBuffers(1, &g_other_vertex_buffer_ID);
-   glDeleteBuffers(1, &g_other_index_buffer_ID);
+   glDeleteBuffers(1, &g_vertex_buffer_ID);
+   glDeleteBuffers(1, &g_index_buffer_ID);
 }
 
 
@@ -138,13 +131,13 @@ void me_GL_window::paintGL()
    shader_handler& shader_thingy = shader_handler::get_instance();
 
    // render the cube light first with the pass-through shader
-   shader_thingy.activate_pass_through_shader_program();
+   //shader_thingy.activate_pass_through_shader_program();
    world_to_projection_matrix_uniform_location = shader_thingy.get_uniform_location("world_to_projection_matrix");
    glUniformMatrix4fv(world_to_projection_matrix_uniform_location, 1, GL_FALSE, &world_to_projection_matrix[0][0]);
 
    model_to_world_matrix =
       translate(mat4(), vec3(0.0f, 1.0f, -4.0f)) *
-      scale(mat4(), vec3(0.3f, 0.3f, 0.3f));
+      scale(mat4(), vec3(1.0f, 1.0f, 1.0f));
    model_to_world_matrix_uniform_location = shader_thingy.get_uniform_location("model_to_world_matrix");
    glUniformMatrix4fv(model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
 
@@ -290,53 +283,23 @@ void me_GL_window::send_data_to_open_GL()
 
    int buffer_start_offset = 0;
 
-   shader_handler& shader_thingy = shader_handler::get_instance();
 
-   // create the buffer objects for the cube light's program
-   shader_thingy.activate_pass_through_shader_program();
-   glGenBuffers(1, &g_cube_light_vertex_buffer_ID);
-   glGenBuffers(1, &g_cube_light_index_buffer_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_cube_light_vertex_buffer_ID);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_cube_light_index_buffer_ID);
-   glBufferData(GL_ARRAY_BUFFER, cube_light.vertex_buffer_size(), 0, GL_STATIC_DRAW);
-   glBufferData(GL_ELEMENT_ARRAY_BUFFER, cube_light.index_buffer_size(), 0, GL_STATIC_DRAW);
-
-   buffer_start_offset = 0;
-   glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, cube_light.vertex_buffer_size(), cube_light.vertices);
-   buffer_start_offset = 0;
-   g_cube_light_index_byte_offset = buffer_start_offset;
-   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, cube_light.index_buffer_size(), cube_light.indices);
-
-   glGenVertexArrays(1, &g_cube_light_vertex_array_object_ID);
-   glBindVertexArray(g_cube_light_vertex_array_object_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_cube_light_vertex_buffer_ID);
-   glEnableVertexAttribArray(0);
-   glEnableVertexAttribArray(1);
-   glEnableVertexAttribArray(2);
-   buffer_start_offset = 0;
-   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
-   buffer_start_offset += my_vertex::BYTES_PER_POSITION;
-   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
-   buffer_start_offset += my_vertex::BYTES_PER_COLOR;
-   glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_cube_light_index_buffer_ID);
-
-
-   // create the buffer objects for the other stuff
-   shader_thingy.activate_lighting_shader_program();
-   glGenBuffers(1, &g_other_vertex_buffer_ID);
-   glGenBuffers(1, &g_other_index_buffer_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_other_vertex_buffer_ID);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_other_index_buffer_ID);
+   // create the vertex and index objects
+   glGenBuffers(1, &g_vertex_buffer_ID);
+   glGenBuffers(1, &g_index_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
    glBufferData(GL_ARRAY_BUFFER,
       teapot.vertex_buffer_size() + 
       torus.vertex_buffer_size() + 
-      plane.vertex_buffer_size(),
+      plane.vertex_buffer_size() +
+      cube_light.vertex_buffer_size(),
       0, GL_STATIC_DRAW);
    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
       teapot.index_buffer_size() + 
       torus.index_buffer_size() + 
-      plane.index_buffer_size(),
+      plane.index_buffer_size() + 
+      cube_light.index_buffer_size(),
       0, GL_STATIC_DRAW);
 
    // send the vertex data
@@ -346,6 +309,8 @@ void me_GL_window::send_data_to_open_GL()
    glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, torus.vertex_buffer_size(), torus.vertices);
    buffer_start_offset += torus.vertex_buffer_size();
    glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, plane.vertex_buffer_size(), plane.vertices);
+   buffer_start_offset += plane.vertex_buffer_size();
+   glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, cube_light.vertex_buffer_size(), cube_light.vertices);
 
    // send the index data
    buffer_start_offset = 0;
@@ -357,7 +322,10 @@ void me_GL_window::send_data_to_open_GL()
    buffer_start_offset += torus.index_buffer_size();
    g_plane_index_byte_offset = buffer_start_offset;
    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, plane.index_buffer_size(), plane.indices);
-   
+   buffer_start_offset += plane.index_buffer_size();
+   g_cube_light_index_byte_offset = buffer_start_offset;
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, cube_light.index_buffer_size(), cube_light.indices);
+
 
    // create the vertex array objects
    // Note: OpenGL does not actually create the buffer when it "generates" it.  Only the ID is generated.
@@ -366,10 +334,11 @@ void me_GL_window::send_data_to_open_GL()
    glGenVertexArrays(1, &g_teapot_vertex_array_object_ID);
    glGenVertexArrays(1, &g_torus_vertex_array_object_ID);
    glGenVertexArrays(1, &g_plane_vertex_array_object_ID);
+   glGenVertexArrays(1, &g_cube_light_vertex_array_object_ID);
 
    // the teapot
    glBindVertexArray(g_teapot_vertex_array_object_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_other_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    glEnableVertexAttribArray(2);
@@ -379,11 +348,11 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_COLOR;
    glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_other_index_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    // the torus
    glBindVertexArray(g_torus_vertex_array_object_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_other_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    glEnableVertexAttribArray(2);
@@ -393,11 +362,11 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_COLOR;
    glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_other_index_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
 
    // the plane
    glBindVertexArray(g_plane_vertex_array_object_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_other_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    glEnableVertexAttribArray(2);
@@ -407,7 +376,22 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_COLOR;
    glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_other_index_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
+
+   // the cube light
+   glBindVertexArray(g_cube_light_vertex_array_object_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
+   glEnableVertexAttribArray(0);
+   glEnableVertexAttribArray(1);
+   glEnableVertexAttribArray(2);
+   buffer_start_offset = 0;
+   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_POSITION;
+   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_COLOR;
+   glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
+
 
    glBindVertexArray(0);
 
