@@ -217,9 +217,12 @@ bool shader_handler::install_shaders()
    }
    
    
-   // use one of the programs
+   // use one of the programs by default
    glUseProgram(m_pass_through_shader_program_ID);
    m_current_shader_program_ID = m_pass_through_shader_program_ID;
+   //glUseProgram(m_lighting_shader_program_ID);
+   //m_current_shader_program_ID = m_lighting_shader_program_ID;
+
 
    return success;
 }
@@ -227,12 +230,14 @@ bool shader_handler::install_shaders()
 
 void shader_handler::activate_pass_through_shader_program()
 {
-   
+   glUseProgram(m_pass_through_shader_program_ID);
+   m_current_shader_program_ID = m_pass_through_shader_program_ID;
 }
 
 void shader_handler::activate_lighting_shader_program()
 {
-   glUseProgram(m_current_shader_program_ID);
+   glUseProgram(m_lighting_shader_program_ID);
+   m_current_shader_program_ID = m_lighting_shader_program_ID;
 }
 
 GLint shader_handler::get_uniform_location(const char* uniform_name_as_string)

@@ -12,6 +12,7 @@ using glm::mat4;
 using glm::translate;
 using glm::perspective;
 using glm::rotate;
+using glm::scale;
 
 // for reporting errors to console
 #include <iostream>
@@ -37,7 +38,8 @@ using std::left;
 #include <QtGui/qkeyevent>
 
 my_camera g_camera;
-float g_rotation_angle_radians = 0.0f;
+//float g_rotation_angle_radians = 0.0f;
+vec3 g_light_position_world;
 bool g_mouse_is_pressed = false;
 
 
@@ -46,8 +48,10 @@ bool g_mouse_is_pressed = false;
 // - index buffer: stores indices of position/color combos in the vertex buffer
 // - vertex array object: stores vertex attrib array and pointer attribues, relieving you of the burden of having to re-specify them manually on every draw call if you are drawing from different vertex buffers
 
-GLuint g_vertex_buffer_ID;
-GLuint g_index_buffer_ID;
+GLuint g_other_vertex_buffer_ID;
+GLuint g_other_index_buffer_ID;
+GLuint g_cube_light_vertex_buffer_ID;
+GLuint g_cube_light_index_buffer_ID;
 
 GLuint g_teapot_vertex_array_object_ID;
 GLuint g_teapot_num_indices = 0;
@@ -61,18 +65,22 @@ GLuint g_plane_vertex_array_object_ID;
 GLuint g_plane_num_indices = 0;
 GLuint g_plane_index_byte_offset = 0;
 
-GLint g_world_to_projection_matrix_uniform_location;
-GLint g_model_to_world_matrix_uniform_location;
-GLint g_ambient_light_uniform_location;
-GLint g_diffuse_light_uniform_location;
+GLuint g_cube_light_vertex_array_object_ID;
+GLuint g_cube_light_num_indices = 0;
+GLuint g_cube_light_index_byte_offset = 0;
 
+//GLint g_world_to_projection_matrix_uniform_location;
+//GLint g_model_to_world_matrix_uniform_location;
+//GLint g_ambient_light_uniform_location;
+//GLint g_diffuse_light_uniform_location;
+//
 
 
 
 me_GL_window::~me_GL_window()
 {
-   glDeleteBuffers(1, &g_vertex_buffer_ID);
-   glDeleteBuffers(1, &g_index_buffer_ID);
+   glDeleteBuffers(1, &g_other_vertex_buffer_ID);
+   glDeleteBuffers(1, &g_other_index_buffer_ID);
 }
 
 
@@ -98,10 +106,7 @@ void me_GL_window::initializeGL()
       std::cout << "something bad happened during shader initialization" << std::endl;
    }
 
-   g_world_to_projection_matrix_uniform_location = shader_thingy.get_uniform_location("world_to_projection_matrix");
-   g_model_to_world_matrix_uniform_location = shader_thingy.get_uniform_location("model_to_world_matrix");
-   g_ambient_light_uniform_location = shader_thingy.get_uniform_location("ambient_light");
-   g_diffuse_light_uniform_location = shader_thingy.get_uniform_location("light_position_world");
+   g_light_position_world = vec3(0.0f, 1.0f, 0.0f);
 }
 
 
@@ -112,16 +117,11 @@ void me_GL_window::paintGL()
 
    // set up light
    vec3 ambient_light(0.05f, 0.05f, 0.05f);
-   glUniform3f(g_ambient_light_uniform_location, 
-      ambient_light.r,
-      ambient_light.g,
-      ambient_light.b);
 
-   vec3 light_position(0.0f, +1.0f, +0.0f);
-   glUniform3f(g_diffuse_light_uniform_location,
-      light_position.x,
-      light_position.y,
-      light_position.z);
+   GLint world_to_projection_matrix_uniform_location;
+   GLint model_to_world_matrix_uniform_location;
+   GLint ambient_light_uniform_location;
+   GLint diffuse_light_uniform_location;
 
 
    // set up the transformation matrix 
@@ -133,33 +133,70 @@ void me_GL_window::paintGL()
    float far_plane_dist = 20.0f;
    mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
    mat4 world_to_projection_matrix = projection_matrix * g_camera.get_world_to_view_matrix();
-   glUniformMatrix4fv(g_world_to_projection_matrix_uniform_location, 1, GL_FALSE, &world_to_projection_matrix[0][0]);
 
    mat4 model_to_world_matrix = mat4();
+   shader_handler& shader_thingy = shader_handler::get_instance();
+
+   // render the cube light first with the pass-through shader
+   shader_thingy.activate_pass_through_shader_program();
+   world_to_projection_matrix_uniform_location = shader_thingy.get_uniform_location("world_to_projection_matrix");
+   glUniformMatrix4fv(world_to_projection_matrix_uniform_location, 1, GL_FALSE, &world_to_projection_matrix[0][0]);
+
+   model_to_world_matrix =
+      translate(mat4(), vec3(0.0f, 1.0f, -4.0f)) *
+      scale(mat4(), vec3(0.3f, 0.3f, 0.3f));
+   model_to_world_matrix_uniform_location = shader_thingy.get_uniform_location("model_to_world_matrix");
+   glUniformMatrix4fv(model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
+
+   glBindVertexArray(g_cube_light_vertex_array_object_ID);
+   glDrawElements(GL_TRIANGLES, g_cube_light_num_indices, GL_UNSIGNED_SHORT, (void *)(g_cube_light_index_byte_offset));
+
+
+   // render everything else with the lighting shader
+   shader_thingy.activate_lighting_shader_program();
+   world_to_projection_matrix_uniform_location = shader_thingy.get_uniform_location("world_to_projection_matrix");
+   model_to_world_matrix_uniform_location = shader_thingy.get_uniform_location("model_to_world_matrix");
+   ambient_light_uniform_location = shader_thingy.get_uniform_location("ambient_light");
+   diffuse_light_uniform_location = shader_thingy.get_uniform_location("light_position_world");
+
+   // // set up the uniforms that will not change from model to model
+   glUniformMatrix4fv(world_to_projection_matrix_uniform_location, 1, GL_FALSE, &world_to_projection_matrix[0][0]);
+   glUniform3f(ambient_light_uniform_location, ambient_light.r, ambient_light.g, ambient_light.b);
+   glUniform3f(diffuse_light_uniform_location, g_light_position_world.x, g_light_position_world.y, g_light_position_world.z);
+
+   //// cube light
+   //glBindVertexArray(g_cube_light_vertex_array_object_ID);
+   //model_to_world_matrix =
+   //   translate(mat4(), vec3(0.0f, 1.0f, -4.0f)) * 
+   //   scale(mat4(), vec3(0.3f, 0.3f, 0.3f));
+   //glUniformMatrix4fv(model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
+   //glDrawElements(GL_TRIANGLES, g_cube_light_num_indices, GL_UNSIGNED_SHORT, (void *)(g_cube_light_index_byte_offset));
+
 
    // plane 
    // Note: No transformation for the plane, but it does require the matrix to be specified so that it 
    // doesn't have another object's transformation applied to itself.
    glBindVertexArray(g_plane_vertex_array_object_ID);
-   glUniformMatrix4fv(g_model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
+   model_to_world_matrix = mat4();
+   glUniformMatrix4fv(model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
    glDrawElements(GL_TRIANGLES, g_plane_num_indices, GL_UNSIGNED_SHORT, (void *)(g_plane_index_byte_offset));
 
    // teapot
    // Note: Rotate the teapot so that it is right-side-up (the mathematically generated model assumes +Z as postive vertical)
    glBindVertexArray(g_teapot_vertex_array_object_ID);
-   model_to_world_matrix = 
-      translate(mat4(), vec3(+3.0f, +1.0f, +1.0f)) *
-      rotate(mat4(), -(3.14159f / 2.0f), vec3(1.0f, 0.0f, 0.0f)) * 
-      rotate(mat4(), g_rotation_angle_radians, vec3(0.0f, 0.0f, 1.0f));
-   glUniformMatrix4fv(g_model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
-   glDrawElements(GL_TRIANGLES, g_teapot_num_indices, GL_UNSIGNED_SHORT, 0);
+   model_to_world_matrix =
+      translate(mat4(), vec3(+6.0f, +1.0f, +1.0f)) *
+      rotate(mat4(), -(3.14159f / 2.0f), vec3(0.0f, 1.0f, 0.0f)) *
+      rotate(mat4(), -(3.14159f / 2.0f), vec3(1.0f, 0.0f, 0.0f));
+      glUniformMatrix4fv(model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
+   glDrawElements(GL_TRIANGLES, g_teapot_num_indices, GL_UNSIGNED_SHORT, (void *)(g_teapot_index_byte_offset));
 
    // torus
    glBindVertexArray(g_torus_vertex_array_object_ID);
    model_to_world_matrix = 
       translate(mat4(), vec3(-3.0f, +1.0f, +3.0f)) *
       rotate(mat4(), (0.0f / 3.0f) * 3.14159f, vec3(0.0f, 0.0f, 1.0f));
-   glUniformMatrix4fv(g_model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
+   glUniformMatrix4fv(model_to_world_matrix_uniform_location, 1, GL_FALSE, &model_to_world_matrix[0][0]);
    glDrawElements(GL_TRIANGLES, g_torus_num_indices, GL_UNSIGNED_SHORT, (void *)(g_torus_index_byte_offset));
 
    //GLenum e = glGetError();
@@ -179,7 +216,7 @@ void me_GL_window::mouseMoveEvent(QMouseEvent * e)
    {
       // rotate a teapot
       glm::vec2 mouse_delta = glm::vec2(new_x, new_y) - prev_mouse_position;
-      g_rotation_angle_radians = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
+      //g_rotation_angle_radians = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
    }
    else
    {
@@ -247,22 +284,59 @@ void me_GL_window::send_data_to_open_GL()
    my_shape_data plane = my_shape_generator::make_plane(20);
    g_plane_num_indices = plane.num_indices;
 
+   my_shape_data cube_light = my_shape_generator::make_cube();
+   g_cube_light_num_indices = cube_light.num_indices;
+
+
    int buffer_start_offset = 0;
 
-   // create the buffer objects for vertex and index data
-   glGenBuffers(1, &g_vertex_buffer_ID);
-   glGenBuffers(1, &g_index_buffer_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
+   shader_handler& shader_thingy = shader_handler::get_instance();
+
+   // create the buffer objects for the cube light's program
+   shader_thingy.activate_pass_through_shader_program();
+   glGenBuffers(1, &g_cube_light_vertex_buffer_ID);
+   glGenBuffers(1, &g_cube_light_index_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_cube_light_vertex_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_cube_light_index_buffer_ID);
+   glBufferData(GL_ARRAY_BUFFER, cube_light.vertex_buffer_size(), 0, GL_STATIC_DRAW);
+   glBufferData(GL_ELEMENT_ARRAY_BUFFER, cube_light.index_buffer_size(), 0, GL_STATIC_DRAW);
+
+   buffer_start_offset = 0;
+   glBufferSubData(GL_ARRAY_BUFFER, buffer_start_offset, cube_light.vertex_buffer_size(), cube_light.vertices);
+   buffer_start_offset = 0;
+   g_cube_light_index_byte_offset = buffer_start_offset;
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, cube_light.index_buffer_size(), cube_light.indices);
+
+   glGenVertexArrays(1, &g_cube_light_vertex_array_object_ID);
+   glBindVertexArray(g_cube_light_vertex_array_object_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_cube_light_vertex_buffer_ID);
+   glEnableVertexAttribArray(0);
+   glEnableVertexAttribArray(1);
+   glEnableVertexAttribArray(2);
+   buffer_start_offset = 0;
+   glVertexAttribPointer(0, my_vertex::FLOATS_PER_POSITION, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_POSITION;
+   glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   buffer_start_offset += my_vertex::BYTES_PER_COLOR;
+   glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_cube_light_index_buffer_ID);
+
+
+   // create the buffer objects for the other stuff
+   shader_thingy.activate_lighting_shader_program();
+   glGenBuffers(1, &g_other_vertex_buffer_ID);
+   glGenBuffers(1, &g_other_index_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_other_vertex_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_other_index_buffer_ID);
    glBufferData(GL_ARRAY_BUFFER,
       teapot.vertex_buffer_size() + 
       torus.vertex_buffer_size() + 
-      plane.vertex_buffer_size(), 
+      plane.vertex_buffer_size(),
       0, GL_STATIC_DRAW);
    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
       teapot.index_buffer_size() + 
       torus.index_buffer_size() + 
-      plane.index_buffer_size(), 
+      plane.index_buffer_size(),
       0, GL_STATIC_DRAW);
 
    // send the vertex data
@@ -275,13 +349,14 @@ void me_GL_window::send_data_to_open_GL()
 
    // send the index data
    buffer_start_offset = 0;
+   g_teapot_index_byte_offset = buffer_start_offset;
    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, teapot.index_buffer_size(), teapot.indices);
    buffer_start_offset += teapot.index_buffer_size();
+   g_torus_index_byte_offset = buffer_start_offset;
    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, torus.index_buffer_size(), torus.indices);
    buffer_start_offset += torus.index_buffer_size();
+   g_plane_index_byte_offset = buffer_start_offset;
    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, buffer_start_offset, plane.index_buffer_size(), plane.indices);
-   g_torus_index_byte_offset = teapot.index_buffer_size();
-   g_plane_index_byte_offset = teapot.index_buffer_size() + torus.index_buffer_size();
    
 
    // create the vertex array objects
@@ -294,7 +369,7 @@ void me_GL_window::send_data_to_open_GL()
 
    // the teapot
    glBindVertexArray(g_teapot_vertex_array_object_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_other_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    glEnableVertexAttribArray(2);
@@ -304,11 +379,11 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_COLOR;
    glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_other_index_buffer_ID);
 
    // the torus
    glBindVertexArray(g_torus_vertex_array_object_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_other_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    glEnableVertexAttribArray(2);
@@ -318,11 +393,11 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_COLOR;
    glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_other_index_buffer_ID);
 
    // the plane
    glBindVertexArray(g_plane_vertex_array_object_ID);
-   glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer_ID);
+   glBindBuffer(GL_ARRAY_BUFFER, g_other_vertex_buffer_ID);
    glEnableVertexAttribArray(0);
    glEnableVertexAttribArray(1);
    glEnableVertexAttribArray(2);
@@ -332,16 +407,16 @@ void me_GL_window::send_data_to_open_GL()
    glVertexAttribPointer(1, my_vertex::FLOATS_PER_COLOR, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
    buffer_start_offset += my_vertex::BYTES_PER_COLOR;
    glVertexAttribPointer(2, my_vertex::FLOATS_PER_NORMAL, GL_FLOAT, GL_FALSE, my_vertex::BYTES_PER_VERTEX, (void *)buffer_start_offset);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer_ID);
-
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_other_index_buffer_ID);
 
    glBindVertexArray(0);
 
 
-   // take care of any allocated memory
+   // we have sent the data to the graphics card, so we don't need the data in RAM anymore
    teapot.cleanup();
    torus.cleanup();
    plane.cleanup();
+   cube_light.cleanup();
 }
 
 
