@@ -199,8 +199,15 @@ void me_GL_window::mouseMoveEvent(QMouseEvent * e)
 
    if (g_mouse_is_pressed)
    {
+      // move the diffuse light
+      // Note: I use "X" and "Y" for the mouse delta because the display area is considered a 2D surface.
+      // However, I don't want the light to move up and down.  I want 
+      float mouse_delta_x = new_x - prev_mouse_position.x;
+      float mouse_delta_y = new_y - prev_mouse_position.y;
+      g_light_position_world.x += mouse_delta_x;
+
       // rotate a teapot
-      glm::vec2 mouse_delta = glm::vec2(new_x, new_y) - prev_mouse_position;
+      //glm::vec2 mouse_delta = glm::vec2(new_x, new_y) - prev_mouse_position;
       //g_rotation_angle_radians = mouse_delta.x * (2.0f * 3.14159f) / 360.0f;
    }
    else
