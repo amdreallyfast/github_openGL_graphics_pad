@@ -67,6 +67,9 @@ GLuint g_cube_light_vertex_array_object_ID;
 GLuint g_cube_light_num_indices = 0;
 GLuint g_cube_light_index_byte_offset = 0;
 
+GLint g_ambient_light_uniform_location;
+GLint g_diffuse_light_uniform_location;
+GLint g_camera_position_uniform_location;
 
 
 
@@ -111,10 +114,9 @@ void me_GL_window::paintGL()
    // set up light
    vec3 ambient_light(0.05f, 0.05f, 0.05f);
 
+   // these uniforms are in this function instead of global because they are unique to the program
    GLint world_to_projection_matrix_uniform_location;
    GLint model_to_world_matrix_uniform_location;
-   GLint ambient_light_uniform_location;
-   GLint diffuse_light_uniform_location;
 
 
    // set up the transformation matrix 
@@ -150,13 +152,17 @@ void me_GL_window::paintGL()
    shader_thingy.activate_lighting_shader_program();
    world_to_projection_matrix_uniform_location = shader_thingy.get_uniform_location("world_to_projection_matrix");
    model_to_world_matrix_uniform_location = shader_thingy.get_uniform_location("model_to_world_matrix");
-   ambient_light_uniform_location = shader_thingy.get_uniform_location("ambient_light");
-   diffuse_light_uniform_location = shader_thingy.get_uniform_location("light_position_world");
+   g_ambient_light_uniform_location = shader_thingy.get_uniform_location("ambient_light");
+   g_diffuse_light_uniform_location = shader_thingy.get_uniform_location("light_position_world");
+   g_camera_position_uniform_location = shader_thingy.get_uniform_location("camera_position_world");
 
    // // set up the uniforms that will not change from model to model
    glUniformMatrix4fv(world_to_projection_matrix_uniform_location, 1, GL_FALSE, &world_to_projection_matrix[0][0]);
-   glUniform3f(ambient_light_uniform_location, ambient_light.r, ambient_light.g, ambient_light.b);
-   glUniform3f(diffuse_light_uniform_location, g_light_position_world.x, g_light_position_world.y, g_light_position_world.z);
+   glUniform3f(g_ambient_light_uniform_location, ambient_light.r, ambient_light.g, ambient_light.b);
+   glUniform3f(g_diffuse_light_uniform_location, g_light_position_world.x, g_light_position_world.y, g_light_position_world.z);
+
+   vec3 camera_position = g_camera.get_position();
+   glUniform3f(g_camera_position_uniform_location, camera_position.x, camera_position.y, camera_position.z);
 
 
    // plane 

@@ -11,6 +11,7 @@ public:
 
    glm::vec3 get_strafe_vector();
    glm::vec3 get_forward_vector();
+   glm::vec3 get_position();
 
    void move_forward();
    void move_back();

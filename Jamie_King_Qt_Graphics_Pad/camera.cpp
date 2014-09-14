@@ -84,6 +84,11 @@ glm::vec3 my_camera::get_forward_vector()
    return m_view_direction;
 }
 
+glm::vec3 my_camera::get_position()
+{
+   return m_position;
+}
+
 void my_camera::move_forward()
 {
    m_position += m_camera_move_speed * m_view_direction;
