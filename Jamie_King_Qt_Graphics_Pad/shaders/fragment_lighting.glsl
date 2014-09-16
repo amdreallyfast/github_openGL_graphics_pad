@@ -24,10 +24,11 @@ void main()
    // then it will be considered to be incident to the underside of surface that the normal represents.
    vec3 reflected_light_vector_world = reflect(-light_vector_world, re_n_vector_normal_world);  
    vec3 camera_vector_world = normalize(camera_position_world - vertex_position_world);
-   float specular_brightness = dot(reflected_light_vector_world, camera_vector_world);
+   float specular_brightness = pow(dot(reflected_light_vector_world, camera_vector_world), 32);
    vec4 specular_color = vec4(specular_brightness, specular_brightness, specular_brightness, 1.0f);
 
    // add the colors together
    final_color = vec4(ambient_light, 0.0f) + clamp(diffuse_color, 0, 1) + clamp(specular_color, 0, 1);
+   //final_color = clamp(specular_color, 0, 1);
 }
 
