@@ -13,9 +13,11 @@ using std::cout;
 using std::endl;
 
 my_camera::my_camera() :
-   m_position(4.0f, 6.0f, 4.0f),
+   //m_position(4.0f, 6.0f, 4.0f),
+   m_position(0.0f, 0.0f, 0.0f),
    m_world_up_vector(0.0f, 1.0f, 0.0f),
-   m_view_direction(-1.0f, -1.0f, -1.0f),
+   //m_view_direction(-1.0f, -1.0f, -1.0f),
+   m_view_direction(0.0f, 0.0f, -1.0f),
    m_strafe_direction(0.0f, 0.0f, 0.0f),
    m_prev_mouse_position(0.0f, 0.0f),
    m_camera_move_speed(0.3f)
@@ -38,6 +40,7 @@ glm::mat4 my_camera::get_world_to_view_matrix() const
    // the camera's world coordinates + the desired "look at" world coordinates.  The view direction will be treated (by 
    // me, the programmer) as a unit vector because I want to think of it as a direction even though the vector math
    // turns out to be same as if it were a position.
+
    return glm::lookAt(m_position, m_position + m_view_direction, m_world_up_vector);
 }
 

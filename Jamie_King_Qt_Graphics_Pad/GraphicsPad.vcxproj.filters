@@ -6,6 +6,7 @@
     <ClCompile Include="Primitives\shape_generator.cpp" />
     <ClCompile Include="utilities\shader_handler.cpp" />
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="utilities\Printer_Helper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="me_GL_window.h" />
@@ -15,6 +16,7 @@
     <ClInclude Include="utilities\shader_handler.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="Primitives\TeapotData.h" />
+    <ClInclude Include="utilities\Printer_Helper.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\vertex_lighting.glsl" />

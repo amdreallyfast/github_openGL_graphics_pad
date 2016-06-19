@@ -84,6 +84,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="me_GL_window.cpp" />
     <ClCompile Include="Primitives\shape_generator.cpp" />
+    <ClCompile Include="utilities\Printer_Helper.cpp" />
     <ClCompile Include="utilities\shader_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +94,7 @@
     <ClInclude Include="Primitives\TeapotData.h" />
     <ClInclude Include="Primitives\vertex.h" />
     <ClInclude Include="Primitives\shape_generator.h" />
+    <ClInclude Include="utilities\Printer_Helper.h" />
     <ClInclude Include="utilities\shader_handler.h" />
   </ItemGroup>
   <ItemGroup>

@@ -27,6 +27,40 @@ vec3 random_color()
    return ret;
 }
 
+my_shape_data my_shape_generator::make_triangle()
+{
+   // declare some vertices and make a shape out of it
+   my_shape_data tri;
+
+   my_vertex verts[] =
+   {
+      // first triangle
+      vec3(-0.5f, -0.5f, -1.0f), // left bottom corner
+      vec3(1.0f, 0.0f, 0.0f),             // all red
+      vec3(+0.0f, +0.0f, +1.0f),          // normal points out of screen
+
+      vec3(+0.5f, -0.5f, -1.0f), // right bottom corner
+      vec3(1.0f, 1.0f, 0.0f),             // red + green (apparently this makes yellow)
+      vec3(+0.0f, +0.0f, +1.0f),          // normal points out of screen
+
+      vec3(+0.0f, +0.5f, -1.0f),          // center top
+      vec3(1.0f, 0.0f, 1.0f),             // red + blue (apparently this makes pink
+      vec3(+0.0f, +0.0f, +1.0f),          // normal points out of screen
+   };
+
+   tri.num_vertices = sizeof(verts) / sizeof(*verts);
+   tri.vertices = new my_vertex[tri.num_vertices];
+   memcpy(tri.vertices, verts, sizeof(verts));
+
+   // vertex index data
+   GLushort indices[] = { 0, 1, 2 };
+   tri.num_indices = sizeof(indices) / sizeof(*indices);
+   tri.indices = new GLushort[tri.num_indices];
+   memcpy(tri.indices, indices, sizeof(indices));
+
+   return tri;
+}
+
 my_shape_data my_shape_generator::make_double_triangle()
 {
    // declare some vertices and make a shape out of it

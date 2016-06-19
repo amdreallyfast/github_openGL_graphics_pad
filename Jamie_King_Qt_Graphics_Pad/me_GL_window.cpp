@@ -106,6 +106,8 @@ void me_GL_window::initializeGL()
 }
 
 
+#include <utilities\Printer_Helper.h>
+
 void me_GL_window::paintGL()
 {
    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -127,7 +129,13 @@ void me_GL_window::paintGL()
    float near_plane_dist = 0.1f;
    float far_plane_dist = 20.0f;
    mat4 projection_matrix = perspective(fov_radians, aspect_ratio, near_plane_dist, far_plane_dist);
-   mat4 world_to_projection_matrix = projection_matrix * g_camera.get_world_to_view_matrix();
+   Utilities::Printer_Helper::print_mat("perspective:\n", projection_matrix);
+
+   mat4 camera_mat = g_camera.get_world_to_view_matrix();
+   Utilities::Printer_Helper::print_mat("camera:\n", camera_mat);
+
+   mat4 world_to_projection_matrix = projection_matrix * camera_mat;//g_camera.get_world_to_view_matrix();
+   Utilities::Printer_Helper::print_mat("world to projection:\n", world_to_projection_matrix);
 
    mat4 model_to_world_matrix = mat4();
    shader_handler& shader_thingy = shader_handler::get_instance();
